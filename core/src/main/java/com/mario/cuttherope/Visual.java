@@ -30,7 +30,7 @@ public class Visual {
         labelStyle.fontColor = Color.WHITE;
         skin.add("default", labelStyle);
 
-        Drawable emptyDrawable = new TextureRegionDrawable(); // Fondo vacío para los botones
+        Drawable emptyDrawable = new TextureRegionDrawable(); 
 
         TextButtonStyle buttonStyle = new TextButtonStyle();
         buttonStyle.up = emptyDrawable;
