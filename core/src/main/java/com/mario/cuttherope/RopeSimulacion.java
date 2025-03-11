@@ -39,21 +39,14 @@ public class RopeSimulacion extends Juego {
     protected final float ANCHO_SEGMENTO = 0.05f;
     protected final int NUMERO_SEGMENTOS = 10;
 
-    // Lista de cuerdas que se usarán en el nivel
+    // Lista de cuerdas que se usaran en el nivel
     protected List<Cuerda> cuerdas;
     protected Vector3 ultimaPosRaton = new Vector3();
     protected boolean cortando;
     protected boolean juegoCompleto;
     protected boolean dialogoMostrado;
 
-    /**
-     * Constructor de RopeSimulacion.
-     *
-     * @param mainGame referencia al juego principal.
-     * @param loginManager referencia al manejo de usuario.
-     * @param nivel número de nivel (1 para una cuerda; 2 para múltiples
-     * cuerdas, por ejemplo).
-     */
+    
     public RopeSimulacion(MainGame mainGame, ManejoUsuario loginManager, int nivel) {
         super(mainGame, loginManager);
         // Inicialización del mundo y objetos de Box2D
@@ -72,12 +65,12 @@ public class RopeSimulacion extends Juego {
 
         cuerdas = new ArrayList<Cuerda>();
 
-        // Solo para nivel 1 se crea la cuerda automáticamente.
+        // Solo para nivel 1 se crea la cuerda automaticamente
         if (nivel == 1) {
             cuerdas.add(new Cuerda(mundo, 5, 9, NUMERO_SEGMENTOS, LONGITUD_SEGMENTO, ANCHO_SEGMENTO, RADIO_DULCE));
         }
 
-        // Configuración de entrada para el corte de cuerda.
+        // Configuracion de entrada para el corte de cuerda
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
@@ -94,7 +87,7 @@ public class RopeSimulacion extends Juego {
                 }
                 Vector3 nuevaPos = new Vector3(screenX, screenY, 0);
                 camara.unproject(nuevaPos);
-                // Se recorre cada cuerda para evaluar el corte.
+                // Se recorre cada cuerda para evaluar el corte
                 for (Cuerda cuerda : cuerdas) {
                     cuerda.cortarCuerda(ultimaPosRaton, nuevaPos);
                 }
@@ -115,7 +108,6 @@ public class RopeSimulacion extends Juego {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT);
         mundo.step(delta, 8, 3);
-        // Se puede dibujar el depurador para visualizar las físicas
         depurador.render(mundo, camara.combined);
     }
 
@@ -141,7 +133,6 @@ public class RopeSimulacion extends Juego {
             escenario.dispose();
         }
 
-        // Liberar los recursos de cada cuerda creada
         for (Cuerda cuerda : cuerdas) {
             cuerda.dispose();
         }
