@@ -10,166 +10,353 @@ package com.mario.cuttherope;
  */
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import java.util.ArrayList;
 
-public class Nivel1 extends RopeSimulacion {
+public class Nivel1 implements Screen, InputProcessor {
 
-    private Vector2[] posicionesEstrella;
-    private boolean[] estrellasRecolectadas;
-    private float ANCHO_OMNOM = 1.0f;
-    private float ALTO_OMNOM = 1.0f;
-    private float UMBRAL_ESTRELLA = 0.7f;
-    private float UMBRAL_OMNOM = 2.0f;
-    private float UMBRAL_COMER = 0.3f;
-    private float tamEstrella = 0.6f;
-    private Skin pielNivel;
+    private Stage stage;
+    private ManejoUsuario loginManager;
+    private MainGame game;
+    private int numeroNivel;
+    private boolean juegoTerminado = false;
+    private World mundo;
+    private OrthographicCamera camara;
+    private OrthographicCamera hudCamera;
+    private SpriteBatch batchJuego;
+    private Body cuerpoOmNom;
+    private Body cuerpoDulce;
+    private ShapeRenderer shapeRenderer;
+    private ArrayList<Cuerda> listaCuerdas = new ArrayList<>();
+    private ArrayList<StarObject> listaEstrellas = new ArrayList<>();
+    private RopeSimulacion ropeSimulacion;
 
-    public Nivel1(MainGame mainGame, ManejoUsuario loginManager) {
-        super(mainGame, loginManager, 1);
-        posicionesEstrella = new Vector2[3];
-        posicionesEstrella[0] = new Vector2(5, 5.2f);
-        posicionesEstrella[1] = new Vector2(5, 4.4f);
-        posicionesEstrella[2] = new Vector2(5, 3.6f);
-        estrellasRecolectadas = new boolean[3];
-        pielNivel = new Skin(Gdx.files.internal("uiskin.json"));
+    private Box2DDebugRenderer debugRenderer; // O usamos MyDebugRenderer
 
-        InputMultiplexer multiplexer = new InputMultiplexer();
-        multiplexer.addProcessor(escenario);
-        multiplexer.addProcessor(Gdx.input.getInputProcessor());
+    private final float ANCHO_MUNDO = 20f;
+    private final float ALTO_MUNDO = 30f;
+
+    public Nivel1(MainGame game, ManejoUsuario loginManager, int nivel) {
+        this.game = game;
+        this.loginManager = loginManager;
+        this.numeroNivel = nivel;
+    }
+
+    @Override
+    public void show() {
+        mundo = new World(new Vector2(0, -9.8f), true);
+        debugRenderer = new Box2DDebugRenderer();
+
+        shapeRenderer = new ShapeRenderer();
+        stage = new Stage(new ScreenViewport());
+        camara = new OrthographicCamera(ANCHO_MUNDO, ALTO_MUNDO);
+        camara.position.set(ANCHO_MUNDO / 2f, ALTO_MUNDO / 2f, 0);
+        camara.update();
+        hudCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        hudCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+        batchJuego = new SpriteBatch();
+
+        // Crear cuerpos principales
+        cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO / 2f, 3f));
+        cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 5f));
+        Body anclaje = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 2f));
+
+        // Crear la cuerda y agregarla a la lista
+        Cuerda cuerda = new Cuerda(anclaje, cuerpoDulce, mundo);
+        listaCuerdas.add(cuerda);
+
+        // Estrellas 
+        listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, 15f)));
+        listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, 10f)));
+        listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, 6f)));
+
+        // Inicializar la simulación de la cuerda
+        ropeSimulacion = new RopeSimulacion(game, loginManager, numeroNivel, mundo);
+        ropeSimulacion.inicializarElementos(cuerpoOmNom, cuerpoDulce, listaEstrellas, listaCuerdas, mundo);
+        mundo.setContactListener(new ContactListener() {
+            @Override
+            public void beginContact(Contact contact) {
+                Body bodyA = contact.getFixtureA().getBody();
+                Body bodyB = contact.getFixtureB().getBody();
+
+                if ((bodyA.getUserData() != null && bodyA.getUserData().equals("dulce")
+                        && bodyB.getUserData() != null && bodyB.getUserData().equals("omnom"))
+                        || (bodyB.getUserData() != null && bodyB.getUserData().equals("dulce")
+                        && bodyA.getUserData() != null && bodyA.getUserData().equals("omnom"))) {
+
+                    if (!juegoTerminado) {
+                        juegoTerminado = true;
+                        Gdx.app.postRunnable(() -> {
+                            // Destruir cuerpo del dulce
+                            if (cuerpoDulce != null) {
+                                mundo.destroyBody(cuerpoDulce);
+                                cuerpoDulce = null;
+                            }
+
+                            ropeSimulacion.setDulceComido(true);
+
+                            // Se muestra el dialogo de felicitaciones o pasar a menu
+                            mostrarDialogoFelicidades();
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void endContact(Contact contact) {
+            }
+
+            @Override
+            public void preSolve(Contact contact, Manifold oldManifold) {
+            }
+
+            @Override
+            public void postSolve(Contact contact, ContactImpulse impulse) {
+            }
+        });
+
+        // Configurar el multiplexer de inputs
+        InputMultiplexer multiplexer = new InputMultiplexer(stage, this);
         Gdx.input.setInputProcessor(multiplexer);
+
     }
 
     @Override
     public void render(float delta) {
-        super.render(delta);
-        renderizadorFiguras.setProjectionMatrix(camara.combined);
-        loteSprites.setProjectionMatrix(camara.combined);
-        dibujarCuerda();
-        loteSprites.begin();
-        dibujarDulce();
-        dibujarEstrellas();
-        dibujarOmNom();
-        loteSprites.end();
-        verificarRecolectas();
-        escenario.act(delta);
-        escenario.draw();
-    }
+        mundo.step(delta, 6, 2);
 
-    private void dibujarCuerda() {
-        Cuerda cuerda = cuerdas.get(0);
-        renderizadorFiguras.begin(ShapeRenderer.ShapeType.Line);
-        for (int i = 0; i < cuerda.segmentosCuerda.size() - 1; i++) {
-            if (cuerda.juntasCuerda.get(i) != null) {
-                Vector2 a = cuerda.segmentosCuerda.get(i).getPosition();
-                Vector2 b = cuerda.segmentosCuerda.get(i + 1).getPosition();
-                renderizadorFiguras.line(a.x, a.y, b.x, b.y);
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        debugRenderer.setDrawBodies(false);
+        debugRenderer.render(mundo, camara.combined);
+        debugRenderer.setDrawBodies(true);
+
+        stage.act(delta);
+        stage.draw();
+
+        ropeSimulacion.actualizar(delta);
+
+        batchJuego.setProjectionMatrix(camara.combined);
+        batchJuego.begin();
+        ropeSimulacion.render(batchJuego);
+        batchJuego.end();
+        try {
+            if (hudCamera == null) {
+                hudCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                hudCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
             }
+            hudCamera.update();
+            batchJuego.setProjectionMatrix(hudCamera.combined);
+            batchJuego.begin();
+            ropeSimulacion.renderHUD(batchJuego, (int) hudCamera.viewportWidth, (int) hudCamera.viewportHeight);
+            batchJuego.end();
+        } catch (Exception e) {
+            Gdx.app.error("error", "Error al renderizar HUD", e);
         }
-        int ultimo = cuerda.segmentosCuerda.size() - 1;
-        if (ultimo >= 0 && ultimo < cuerda.juntasCuerda.size() && cuerda.juntasCuerda.get(ultimo) != null) {
-            Vector2 fin = cuerda.segmentosCuerda.get(ultimo).getPosition();
-            Vector2 dulce = cuerda.cuerpoDulce.getPosition();
-            renderizadorFiguras.line(fin.x, fin.y, dulce.x, dulce.y);
-        }
-        renderizadorFiguras.end();
-    }
 
-    private void dibujarDulce() {
-        Cuerda cuerda = cuerdas.get(0);
-        if (!juegoCompleto) {
-            Vector2 posDulce = cuerda.cuerpoDulce.getPosition();
-            float escala = 3.0f;
-            float diam = (RADIO_DULCE * 2f) * escala;
-            loteSprites.draw(texturaDulce, posDulce.x - diam / 2, posDulce.y - diam / 2, diam, diam);
+        if (!juegoTerminado && cuerpoDulce.getPosition().y < -5) {
+            juegoTerminado = true;
+            mostrarDialogoFallo();
         }
     }
 
-    private void dibujarEstrellas() {
-        for (int i = 0; i < posicionesEstrella.length; i++) {
-            if (!estrellasRecolectadas[i]) {
-                Vector2 p = posicionesEstrella[i];
-                loteSprites.draw(new Texture("estrella.png"),
-                        p.x - tamEstrella / 2,
-                        p.y - tamEstrella / 2,
-                        tamEstrella,
-                        tamEstrella
-                );
-            }
-        }
+    private Body crearCuerpoOmNom(Vector2 pos) {
+        Pieza p = new Pieza(1f, BodyDef.BodyType.StaticBody);
+        BodyDef bd = new BodyDef();
+        bd.type = BodyDef.BodyType.StaticBody;
+        bd.position.set(pos);
+        Body body = mundo.createBody(bd);
+        FixtureDef fd = new FixtureDef();
+        fd.shape = p.forma;
+        fd.isSensor = true;
+        body.createFixture(fd);
+        body.setUserData("omnom");
+        p.forma.dispose();
+        return body;
     }
 
-    private void dibujarOmNom() {
-        // Posición fija para OmNom
-        Vector2 posOmNom = new Vector2(5, 2);
-        Cuerda cuerda = cuerdas.get(0);
-        Vector2 posDulce = cuerda.cuerpoDulce.getPosition();
-        boolean bocaAbierta = posDulce.dst(posOmNom) < UMBRAL_OMNOM;
-        if (bocaAbierta) {
-            loteSprites.draw(omNomAbierto,
-                    posOmNom.x - ANCHO_OMNOM / 2,
-                    posOmNom.y,
-                    ANCHO_OMNOM,
-                    ALTO_OMNOM
-            );
-        } else {
-            loteSprites.draw(omNomCerrado,
-                    posOmNom.x - ANCHO_OMNOM / 2,
-                    posOmNom.y,
-                    ANCHO_OMNOM,
-                    ALTO_OMNOM
-            );
-        }
+    private Body crearCuerpoDulce(Vector2 pos) {
+        Pieza p = new Pieza(0.6f, BodyDef.BodyType.DynamicBody);
+        BodyDef bd = new BodyDef();
+        bd.type = BodyDef.BodyType.DynamicBody;
+        bd.position.set(pos);
+        bd.linearDamping = 0.5f;
+        Body body = mundo.createBody(bd);
+        FixtureDef fd = new FixtureDef();
+        fd.shape = p.forma;
+        fd.density = 2f;
+        fd.friction = 0.2f;
+        fd.restitution = 0.1f;
+        fd.filter.groupIndex = -1;
+        body.createFixture(fd);
+        body.setUserData("dulce");
+        p.forma.dispose();
+        return body;
     }
 
-    private void verificarRecolectas() {
-
-        Cuerda cuerda = cuerdas.get(0);
-        Vector2 posDulce = cuerda.cuerpoDulce.getPosition();
-        for (int i = 0; i < posicionesEstrella.length; i++) {
-            if (!estrellasRecolectadas[i]) {
-                if (posDulce.dst(posicionesEstrella[i]) < UMBRAL_ESTRELLA) {
-                    estrellasRecolectadas[i] = true;
-                }
-            }
-        }
-        Vector2 posOmNom = new Vector2(5, 2);
-        boolean todas = true;
-        for (boolean r : estrellasRecolectadas) {
-            if (!r) {
-                todas = false;
-                break;
-            }
-        }
-        if (todas && posDulce.dst(posOmNom) < UMBRAL_COMER && !dialogoMostrado) {
-            juegoCompleto = true;
-            dialogoMostrado = true;
-            mostrarDialogoGanaste();
-        }
+    private Body crearAnclaje(Vector2 pos) {
+        BodyDef bd = new BodyDef();
+        bd.type = BodyDef.BodyType.StaticBody;
+        bd.position.set(pos);
+        Body body = mundo.createBody(bd);
+        CircleShape shape = new CircleShape();
+        shape.setRadius(0.1f);
+        FixtureDef fd = new FixtureDef();
+        fd.shape = shape;
+        fd.isSensor = true;
+        body.createFixture(fd);
+        shape.dispose();
+        return body;
     }
 
-    private void mostrarDialogoGanaste() {
-        Dialog dialog = new Dialog("¡Ganaste!", pielNivel) {
+    private StarObject crearEstrella(Vector2 pos) {
+        Pieza p = new Pieza(0.4f, BodyDef.BodyType.KinematicBody);
+        p.esSensor = true;
+
+        BodyDef bd = new BodyDef();
+        bd.type = BodyDef.BodyType.KinematicBody;
+        bd.position.set(pos);
+
+        Body body = mundo.createBody(bd);
+
+        FixtureDef fd = new FixtureDef();
+        fd.shape = p.forma;
+        fd.isSensor = true;
+
+        body.createFixture(fd);
+        p.forma.dispose();
+
+        return new StarObject(p, body);
+    }
+
+    private void mostrarDialogoFelicidades() {
+        Dialog dialog = new Dialog("Felicidades", new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
-                if (object.equals(true)) {
-                    goToMainMenu();
-                }
-                hide();
+                game.setScreen(new MenuPrincipal(game, loginManager));
             }
         };
-        dialog.setModal(true);
-        dialog.setMovable(false);
-        dialog.text("Has recolectado las 3 estrellas, Felicidades");
+        dialog.text("El dulce llego a la boca de OmNom.");
         dialog.button("Aceptar", true);
-        dialog.show(escenario);
+        dialog.show(stage);
     }
 
-    private void goToMainMenu() {
-        System.out.println("Volviendo al menú principal");
-        mainGame.setScreen(new MenuPrincipal(mainGame, loginManager));
+    private void mostrarDialogoFallo() {
+        Dialog dialog = new Dialog("Nivel Terminado", new Skin(Gdx.files.internal("uiskin.json"))) {
+            @Override
+            protected void result(Object object) {
+                boolean volverAlMenu = (boolean) object;
+                if (volverAlMenu) {
+                    game.setScreen(new MenuPrincipal(game, loginManager));
+                } else {
+                    game.setScreen(new Nivel1(game, loginManager, numeroNivel));
+                }
+            }
+        };
+        dialog.text("El dulce se cayo. ¿Deseas repetir el nivel o volver al menu?");
+        dialog.button("Volver al menu", true);
+        dialog.button("Repetir nivel", false);
+        dialog.show(stage);
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        Vector3 tmp = new Vector3(screenX, screenY, 0);
+        camara.unproject(tmp);
+        ropeSimulacion.intentarCortarCuerda(new Vector2(tmp.x, tmp.y));
+        return false;
+    }
+
+    @Override
+    public boolean keyDown(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyTyped(char character) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        return false;
+    }
+
+    @Override
+    public boolean scrolled(float amountX, float amountY) {
+        return false;
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        stage.getViewport().update(width, height, true);
+    }
+
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
+
+    @Override
+    public void hide() {
+        dispose();
+    }
+
+    @Override
+    public void dispose() {
+        shapeRenderer.dispose();
+        if (stage != null) {
+            stage.dispose();
+        }
+        if (ropeSimulacion != null) {
+            ropeSimulacion.dispose();
+        }
+        if (mundo != null) {
+            mundo.dispose();
+        }
+        if (batchJuego != null) {
+            batchJuego.dispose();
+        }
+        if (debugRenderer != null) {
+            debugRenderer.dispose();
+        }
+
+    }
+
+    @Override
+    public boolean touchCancelled(int i, int i1, int i2, int i3) {
+        return false;
     }
 }

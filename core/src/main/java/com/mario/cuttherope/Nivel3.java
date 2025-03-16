@@ -1,8 +1,13 @@
-//Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-//  Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package com.mario.cuttherope;
-// 
-//  @author Mario
+
+/**
+ *
+ * @author Mario
+ */
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
@@ -17,11 +22,10 @@ import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import java.util.ArrayList;
 
-public class Nivel2 implements Screen, InputProcessor {
+public class Nivel3 implements Screen, InputProcessor {
 
     private Stage stage;
     private ManejoUsuario loginManager;
@@ -44,7 +48,7 @@ public class Nivel2 implements Screen, InputProcessor {
     private final float ANCHO_MUNDO = 20f;
     private final float ALTO_MUNDO = 30f;
 
-    public Nivel2(MainGame game, ManejoUsuario loginManager, int nivel) {
+    public Nivel3(MainGame game, ManejoUsuario loginManager, int nivel) {
         this.game = game;
         this.loginManager = loginManager;
         this.numeroNivel = nivel;
@@ -65,27 +69,36 @@ public class Nivel2 implements Screen, InputProcessor {
 
         batchJuego = new SpriteBatch();
 
-        cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO / 2f, 3f));
-        cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 5f));
+        cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO / 2f + 3f, 3f));
 
-        // Crear 3 anclajes para sujetar las 3 cuerdas
-        Body anclaje1 = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f - 7f, ALTO_MUNDO - 2f)); // Izquierda
-        Body anclaje2 = crearAnclaje(new Vector2(ANCHO_MUNDO / 3f, ALTO_MUNDO - 2f));      // Centro
-        Body anclaje3 = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f + 2f, ALTO_MUNDO - 2f)); // Derecha
+        cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO / 2f));
 
-        Cuerda cuerda1 = new Cuerda(anclaje1, cuerpoDulce, mundo);
-        Cuerda cuerda2 = new Cuerda(anclaje2, cuerpoDulce, mundo);
-        Cuerda cuerda3 = new Cuerda(anclaje3, cuerpoDulce, mundo);
-        cuerda1.setLongitud(5f);
-        cuerda2.setLongitud(8f);
+        Body anclajeArriba = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f, (ALTO_MUNDO / 2f) + 5f));
+        Body anclajeAbajo = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f, (ALTO_MUNDO / 2f) - 5f));
+        Body anclajeIzquierda = crearAnclaje(new Vector2((ANCHO_MUNDO / 2f) - 5f, ALTO_MUNDO / 2f));
+        Body anclajeDerecha = crearAnclaje(new Vector2((ANCHO_MUNDO / 2f) + 5f, ALTO_MUNDO / 2f));
 
-        listaCuerdas.add(cuerda1);
-        listaCuerdas.add(cuerda2);
-        listaCuerdas.add(cuerda3);
+        // Crear 4 cuerdas
+        Cuerda cuerdaArriba = new Cuerda(anclajeArriba, cuerpoDulce, mundo);
+        Cuerda cuerdaAbajo = new Cuerda(anclajeAbajo, cuerpoDulce, mundo);
+        Cuerda cuerdaIzquierda = new Cuerda(anclajeIzquierda, cuerpoDulce, mundo);
+        Cuerda cuerdaDerecha = new Cuerda(anclajeDerecha, cuerpoDulce, mundo);
 
-        listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 3.5f, 21f)));
-        listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2.5f, 17f)));
-        listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, 11f)));
+        cuerdaArriba.setLongitud(2f);
+        cuerdaAbajo.setLongitud(2f);
+        cuerdaIzquierda.setLongitud(2f);
+        cuerdaDerecha.setLongitud(2f);
+
+        // Añadimos las cuerdas a la lista
+        listaCuerdas.add(cuerdaArriba);
+        listaCuerdas.add(cuerdaAbajo);
+        listaCuerdas.add(cuerdaIzquierda);
+        listaCuerdas.add(cuerdaDerecha);
+
+        // Crear estrellas
+        listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, (ALTO_MUNDO / 2f) - 2f)));
+        listaEstrellas.add(crearEstrella(new Vector2((ANCHO_MUNDO / 2f) - 2f, (ALTO_MUNDO / 2f) - 2f)));
+        listaEstrellas.add(crearEstrella(new Vector2((ANCHO_MUNDO / 2f) + 3f, (ALTO_MUNDO / 2f) - 7f)));
 
         ropeSimulacion = new RopeSimulacion(game, loginManager, numeroNivel, mundo);
         ropeSimulacion.inicializarElementos(cuerpoOmNom, cuerpoDulce, listaEstrellas, listaCuerdas, mundo);
@@ -105,14 +118,11 @@ public class Nivel2 implements Screen, InputProcessor {
                     if (!juegoTerminado) {
                         juegoTerminado = true;
                         Gdx.app.postRunnable(() -> {
-
                             if (cuerpoDulce != null) {
                                 mundo.destroyBody(cuerpoDulce);
                                 cuerpoDulce = null;
                             }
-
                             ropeSimulacion.setDulceComido(true);
-
                             mostrarDialogoFelicidades();
                         });
                     }
@@ -187,7 +197,7 @@ public class Nivel2 implements Screen, InputProcessor {
         fd.shape = p.forma;
         fd.isSensor = true;
         body.createFixture(fd);
-        body.setUserData("omnom");
+        body.setUserData("omnom");  
         p.forma.dispose();
         return body;
     }
@@ -242,8 +252,7 @@ public class Nivel2 implements Screen, InputProcessor {
     }
 
     private void mostrarDialogoFelicidades() {
-
-        Dialog dialog = new Dialog("¡Felicidades!", new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog("Felicidades", new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 game.setScreen(new MenuPrincipal(game, loginManager));
@@ -263,7 +272,7 @@ public class Nivel2 implements Screen, InputProcessor {
                 if (volverAlMenu) {
                     game.setScreen(new MenuPrincipal(game, loginManager));
                 } else {
-                    game.setScreen(new Nivel2(game, loginManager, numeroNivel));
+                    game.setScreen(new Nivel3(game, loginManager, numeroNivel));
                 }
             }
         };

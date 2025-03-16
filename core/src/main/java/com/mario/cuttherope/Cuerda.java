@@ -5,165 +5,225 @@
 package com.mario.cuttherope;
 
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.Joint;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
+import com.badlogic.gdx.physics.box2d.joints.DistanceJointDef;
 import java.util.ArrayList;
-import java.util.List;
+import com.badlogic.gdx.physics.box2d.Joint;
 
-/**
- *
- * @author Mario
+/*
+  Clase que representa una cuerda fisica en Box2D, uniendo dos cuerpos
  */
 public class Cuerda {
 
-    public List<Body> segmentosCuerda;
-    public List<Joint> juntasCuerda;
-    public Body cuerpoDulce;
-    private World mundo;
-    private float radioDulce, longitudSegmento, anchoSegmento;
-    private int numSegmentos;
+    public Body cuerpoAnclarA;
+    public Body cuerpoAnclarB;
+    public World mundo;
+    public boolean esColisionHabilitada;
+    public ArrayList<Body> listaCuerpos = new ArrayList<>();
+    public ArrayList<Joint> listaJoints = new ArrayList<>();
 
-    public Cuerda(World mundo, float startX, float startY, int numSegmentos, float longitudSegmento, float anchoSegmento, float radioDulce) {
+    public Cuerda(Body cuerpoAnclarA, Body cuerpoAnclarB, World mundo) {
+        this(cuerpoAnclarA, cuerpoAnclarB, mundo, 0, false, false);
+    }
+
+    public Cuerda(Body cuerpoAnclarA, Body cuerpoAnclarB, World mundo, boolean esElastica) {
+        this(cuerpoAnclarA, cuerpoAnclarB, mundo, 0, esElastica, false);
+    }
+
+    public Cuerda(Body cuerpoAnclarA, Body cuerpoAnclarB, World mundo, int longitudExtra) {
+        this(cuerpoAnclarA, cuerpoAnclarB, mundo, longitudExtra, false, false);
+    }
+
+    public Cuerda(Body cuerpoAnclarA, Body cuerpoAnclarB, World mundo, int longitudExtra, boolean esElastica) {
+        this(cuerpoAnclarA, cuerpoAnclarB, mundo, longitudExtra, esElastica, false);
+    }
+
+    public Cuerda(Body cuerpoAnclarA, Body cuerpoAnclarB, World mundo, int longitudExtra, boolean esElastica, boolean habilitarColision) {
+        this.cuerpoAnclarA = cuerpoAnclarA;
+        this.cuerpoAnclarB = cuerpoAnclarB;
         this.mundo = mundo;
-        this.numSegmentos = numSegmentos;
-        this.longitudSegmento = longitudSegmento;
-        this.anchoSegmento = anchoSegmento;
-        this.radioDulce = radioDulce;
-        segmentosCuerda = new ArrayList<>();
-        juntasCuerda = new ArrayList<>();
-        crearCuerda(startX, startY);
-    }
+        this.esColisionHabilitada = habilitarColision;
 
-    private void crearCuerda(float startX, float startY) {
-        Body cuerpoPrevio = null;
-      
-        for (int i = 0; i < numSegmentos; i++) {
-            BodyDef definicion = new BodyDef();
-            definicion.type = BodyDef.BodyType.DynamicBody;
-            definicion.position.set(startX, startY - i * longitudSegmento);
+        float pasoGeneracion = 1.5f;  // Espaciado entre los segmentos de la cuerda
 
-            Body segmento = mundo.createBody(definicion);
+        // Definir la forma de los eslabones de la cuerda
+        PolygonShape formaEslabon = new PolygonShape();
+        formaEslabon.setAsBox(0.5f, 0.125f);
 
-            PolygonShape forma = new PolygonShape();
-            forma.setAsBox(anchoSegmento, longitudSegmento / 2);
+        FixtureDef defFixture = new FixtureDef();
+        defFixture.shape = formaEslabon;
+        defFixture.density = 5f;
+        defFixture.friction = 0.4f;
+        defFixture.restitution = 0.0f;
+        defFixture.filter.groupIndex = -1;
 
-            FixtureDef fixtureDef = new FixtureDef();
-            fixtureDef.shape = forma;
-            fixtureDef.density = 0.5f;
-            fixtureDef.friction = 0.3f;
-            fixtureDef.restitution = 0.1f;
-            
+        cuerpoAnclarA.setAngularDamping(1.0f);
+        cuerpoAnclarB.setAngularDamping(1.0f);
+
+        Vector2 vectorDistancia = new Vector2(cuerpoAnclarB.getPosition());
+        vectorDistancia.sub(cuerpoAnclarA.getPosition());
+        vectorDistancia.nor().scl(0.5f);
+
+        Body cuerpoPrevio = cuerpoAnclarA;
+        Body cuerpoTemporal;
+        BodyDef defCuerpo = new BodyDef();
+        defCuerpo.type = BodyDef.BodyType.DynamicBody;
+        defCuerpo.angularDamping = 50.0f;
+        defCuerpo.fixedRotation = true; 
+
+        Vector2 posicionSiguiente = new Vector2(cuerpoAnclarA.getPosition());
+        int distanciaCuerpos = (int) (cuerpoAnclarA.getPosition().dst(cuerpoAnclarB.getPosition()));
+
+        listaCuerpos.add(cuerpoAnclarA);
+
+        // Crear los eslabones de la cuerda
+        for (float i = 0; i < distanciaCuerpos; i += pasoGeneracion) {
+            posicionSiguiente.add(vectorDistancia.x, vectorDistancia.y);
+            defCuerpo.position.set(posicionSiguiente);
+
+            cuerpoTemporal = mundo.createBody(defCuerpo);
+            cuerpoTemporal.createFixture(defFixture);
+
+            // Crear un distancejoint entre los segmentos de la cuerda
+            DistanceJointDef defCuerda = new DistanceJointDef();
+            defCuerda.bodyA = cuerpoPrevio;
+            defCuerda.bodyB = cuerpoTemporal;
+            defCuerda.length = pasoGeneracion;
+            defCuerda.dampingRatio = 3f;
+            defCuerda.frequencyHz =5f;
            
-            fixtureDef.filter.groupIndex = -1;
+            defCuerda.collideConnected = false;
 
-            segmento.createFixture(fixtureDef);
-            forma.dispose();
-            
-            segmentosCuerda.add(segmento);
-            
-            if (cuerpoPrevio != null) {
-                RevoluteJointDef jd = new RevoluteJointDef();
-                jd.bodyA = cuerpoPrevio;
-                jd.bodyB = segmento;
-                jd.localAnchorA.set(0, -longitudSegmento / 2);
-                jd.localAnchorB.set(0, longitudSegmento / 2);
-                Joint j = mundo.createJoint(jd);
-                juntasCuerda.add(j);
-            } else {
-             
-                segmento.setType(BodyDef.BodyType.StaticBody);
-            }
-            
-            cuerpoPrevio = segmento;
+            Joint joint = mundo.createJoint(defCuerda);
+            listaJoints.add(joint);
+
+            listaCuerpos.add(cuerpoTemporal);
+            cuerpoPrevio = cuerpoTemporal;
         }
-        
-        // Creacion del dulce
-        BodyDef defDulce = new BodyDef();
-        defDulce.type = BodyDef.BodyType.DynamicBody;
-        defDulce.position.set(startX, startY - numSegmentos * longitudSegmento - 1f);
-        cuerpoDulce = mundo.createBody(defDulce);
-        
-        CircleShape formaDulce = new CircleShape();
-        formaDulce.setRadius(radioDulce);
-        
-        FixtureDef fixDulce = new FixtureDef();
-        fixDulce.shape = formaDulce;
-        fixDulce.density = 0.5f;
-        fixDulce.friction = 0.3f;
-        fixDulce.restitution = 0.2f;
+
+        // Conectar el ultimo eslabon con el dulce
+        DistanceJointDef defCuerdaFinal = new DistanceJointDef();
+        defCuerdaFinal.bodyA = cuerpoPrevio;
+        defCuerdaFinal.bodyB = cuerpoAnclarB;
+        defCuerdaFinal.length = pasoGeneracion;
+        defCuerdaFinal.dampingRatio = 3f;
+        defCuerdaFinal.frequencyHz = 5f;
        
+        defCuerdaFinal.collideConnected = false;
 
-        cuerpoDulce.createFixture(fixDulce);
-        formaDulce.dispose();
-        
-        RevoluteJointDef jdDulce = new RevoluteJointDef();
-        jdDulce.bodyA = segmentosCuerda.get(segmentosCuerda.size() - 1);
-        jdDulce.bodyB = cuerpoDulce;
-        jdDulce.localAnchorA.set(0, -longitudSegmento / 2);
-        jdDulce.localAnchorB.set(0, radioDulce);
-        Joint jDulce = mundo.createJoint(jdDulce);
-        juntasCuerda.add(jDulce);
+        Joint jointFinal = mundo.createJoint(defCuerdaFinal);
+        listaJoints.add(jointFinal);
+
+     
+        formaEslabon.dispose();
+
     }
 
-    public void cortarCuerda(Vector3 posAnt, Vector3 posNue) {
-         float x3 = posAnt.x;
-        float y3 = posAnt.y;
-        float x4 = posNue.x;
-        float y4 = posNue.y;
-        
-        // Cortar las juntas entre los segmentos
-        for (int i = 0; i < segmentosCuerda.size() - 1; i++) {
-            if (juntasCuerda.get(i) == null) continue;
-            Vector2 a = segmentosCuerda.get(i).getPosition();
-            Vector2 b = segmentosCuerda.get(i + 1).getPosition();
-            if (lineasIntersecan(a.x, a.y, b.x, b.y, x3, y3, x4, y4)) {
-                mundo.destroyJoint(juntasCuerda.get(i));
-                juntasCuerda.set(i, null);
+    public boolean verificarPunto(Vector2 punto) {
+        for (Body cuerpo : listaCuerpos) {
+            float distancia = cuerpo.getPosition().dst(punto);
+            if (distancia < 0.5f) {
+                return true;
             }
         }
+        return false;
+    }
+
+    public void setLongitud(float nuevaLongitud) {
         
-        // Cortar la union del dulce, si la linea la intersecta
-        int indiceDulce = juntasCuerda.size() - 1;
-        if (indiceDulce >= 0 && juntasCuerda.get(indiceDulce) != null) {
-            Vector2 ult = segmentosCuerda.get(segmentosCuerda.size() - 1).getPosition();
-            Vector2 dulce = cuerpoDulce.getPosition();
-            if (lineasIntersecan(ult.x, ult.y, dulce.x, dulce.y, x3, y3, x4, y4)) {
-                mundo.destroyJoint(juntasCuerda.get(indiceDulce));
-                juntasCuerda.set(indiceDulce, null);
+        for (Joint joint : listaJoints) {
+            mundo.destroyJoint(joint);
+        }
+        listaJoints.clear();
+
+        for (int i = 1; i < listaCuerpos.size(); i++) { 
+            mundo.destroyBody(listaCuerpos.get(i));
+        }
+        listaCuerpos.clear();
+        listaCuerpos.add(cuerpoAnclarA);
+
+        // Crear nuevos segmentos con la longitud ajustada
+        float pasoGeneracion = 1.5f;
+        PolygonShape formaEslabon = new PolygonShape();
+        formaEslabon.setAsBox(0.5f, 0.125f);
+
+        FixtureDef defFixture = new FixtureDef();
+        defFixture.shape = formaEslabon;
+        defFixture.density = 5f;
+        defFixture.friction = 0.4f;
+        defFixture.restitution = 0.0f;
+        defFixture.filter.groupIndex = -1;
+
+        Vector2 vectorDistancia = new Vector2(cuerpoAnclarB.getPosition());
+        vectorDistancia.sub(cuerpoAnclarA.getPosition());
+        vectorDistancia.nor().scl(0.5f);
+
+        Body cuerpoPrevio = cuerpoAnclarA;
+        Body cuerpoTemporal;
+        BodyDef defCuerpo = new BodyDef();
+        defCuerpo.type = BodyDef.BodyType.DynamicBody;
+        defCuerpo.angularDamping = 50.0f;
+        defCuerpo.fixedRotation = true;
+
+        Vector2 posicionSiguiente = new Vector2(cuerpoAnclarA.getPosition());
+
+        for (float i = 0; i < nuevaLongitud; i += pasoGeneracion) {
+            posicionSiguiente.add(vectorDistancia.x, vectorDistancia.y);
+            defCuerpo.position.set(posicionSiguiente);
+
+            cuerpoTemporal = mundo.createBody(defCuerpo);
+            cuerpoTemporal.createFixture(defFixture);
+
+            DistanceJointDef defCuerda = new DistanceJointDef();
+            defCuerda.bodyA = cuerpoPrevio;
+            defCuerda.bodyB = cuerpoTemporal;
+            defCuerda.length = pasoGeneracion;
+            defCuerda.dampingRatio = 3f;
+            defCuerda.frequencyHz = 5f;
+           
+            defCuerda.collideConnected = false;
+
+            Joint joint = mundo.createJoint(defCuerda);
+            listaJoints.add(joint);
+
+            listaCuerpos.add(cuerpoTemporal);
+            cuerpoPrevio = cuerpoTemporal;
+        }
+
+        // Conectar el ultimo eslabon con el dulce
+        DistanceJointDef defCuerdaFinal = new DistanceJointDef();
+        defCuerdaFinal.bodyA = cuerpoPrevio;
+        defCuerdaFinal.bodyB = cuerpoAnclarB;
+        defCuerdaFinal.length = pasoGeneracion;
+        defCuerdaFinal.dampingRatio = 3f;
+        defCuerdaFinal.frequencyHz = 5f;
+        
+        defCuerdaFinal.collideConnected = false;
+
+        Joint jointFinal = mundo.createJoint(defCuerdaFinal);
+        listaJoints.add(jointFinal);
+
+        formaEslabon.dispose();
+    }
+
+    public void eliminar() {
+        for (Body cuerpo : listaCuerpos) {
+            while (!cuerpo.getJointList().isEmpty()) {
+                mundo.destroyJoint(cuerpo.getJointList().get(0).joint);
             }
+            cuerpo.setGravityScale(3);
         }
     }
-    
-   
-    private boolean lineasIntersecan(float x1, float y1, float x2, float y2,
-                                      float x3, float y3, float x4, float y4) {
-        float denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
-        if (denom == 0) return false;
-        float ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
-        float ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
-        return (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1);
+
+    public Vector2 getInicio() {
+        return cuerpoAnclarA.getPosition();
     }
-    
-    
-    public void dispose() {
-        for (Joint joint : juntasCuerda) {
-            if (joint != null) {
-                mundo.destroyJoint(joint);
-            }
-        }
-        for (Body body : segmentosCuerda) {
-            mundo.destroyBody(body);
-        }
-        if (cuerpoDulce != null) {
-            mundo.destroyBody(cuerpoDulce);
-        }
+
+    public Vector2 getFin() {
+        return cuerpoAnclarB.getPosition();
     }
 }
-
