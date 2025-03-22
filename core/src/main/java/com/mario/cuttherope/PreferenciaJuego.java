@@ -24,12 +24,11 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import java.util.Locale;
 
 public class PreferenciaJuego implements Screen {
-    private MainGame game;
+   private MainGame game;
     private ManejoUsuario manejoUsuario;
     private Stage stage;
     private Skin skin;
     private Slider sliderVolumen;
-    private float volumen;
     private Idiomas idioma;
     private Label titulo;
     private Label lblVol;
@@ -41,42 +40,63 @@ public class PreferenciaJuego implements Screen {
     public PreferenciaJuego(MainGame game, ManejoUsuario manejoUsuario) {
         this.game = game;
         this.manejoUsuario = manejoUsuario;
+
         stage = new Stage(new ScreenViewport());
         skin = new Skin(Gdx.files.internal("uiskin.json"));
         Gdx.input.setInputProcessor(stage);
+
         idioma = Idiomas.getInstance();
+
         Table table = new Table();
         table.setFillParent(true);
         table.center();
         table.defaults().pad(5);
         stage.addActor(table);
+
         titulo = new Label(idioma.get("titulo.preferenciasJuego"), skin);
         table.add(titulo).colspan(2).pad(10).center();
         table.row();
-        volumen = 1.0f;
+
         lblVol = new Label(idioma.get("lbl.volumen"), skin);
         sliderVolumen = new Slider(0f, 1f, 0.1f, false, skin);
-        sliderVolumen.setValue(volumen);
+
+        PerfilUsuario perfil = manejoUsuario.getPerfilUsuarioActual();
+        if (perfil != null) {
+            sliderVolumen.setValue(perfil.getVolumen());
+            AudioManager.getInstance().setVolume(perfil.getVolumen());
+        }
+
         sliderVolumen.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                volumen = sliderVolumen.getValue();
-                AudioManager.getInstance().setVolume(volumen);
+                float nuevoVolumen = sliderVolumen.getValue();
+                AudioManager.getInstance().setVolume(nuevoVolumen);
+
+                if (perfil != null) {
+                    perfil.setVolumen(nuevoVolumen);
+                    manejoUsuario.actualizarPerfil(perfil);
+                }
             }
         });
+
         table.add(lblVol).pad(5).right();
         table.add(sliderVolumen).width(200).pad(5).left();
         table.row();
+
         lblSeleccioneIdioma = new Label(idioma.get("lbl.seleccioneIdioma"), skin);
         table.add(lblSeleccioneIdioma).colspan(2).center();
         table.row();
+
         btnEnglish = new TextButton("EN", skin);
         btnSpanish = new TextButton("ES", skin);
+
         Table langTable = new Table();
         langTable.add(btnEnglish).padRight(10);
         langTable.add(btnSpanish);
+
         table.add(langTable).colspan(2).center();
         table.row();
+
         btnRegresar = new TextButton(idioma.get("btn.regresar"), skin);
         btnRegresar.addListener(new ClickListener() {
             @Override
@@ -85,6 +105,7 @@ public class PreferenciaJuego implements Screen {
             }
         });
         table.add(btnRegresar).colspan(2).padTop(20).center();
+
         btnEnglish.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -92,6 +113,7 @@ public class PreferenciaJuego implements Screen {
                 actualizarTextos();
             }
         });
+
         btnSpanish.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -127,11 +149,9 @@ public class PreferenciaJuego implements Screen {
     }
 
     @Override
-    public void pause() { }
-    @Override
-    public void resume() { }
-    @Override
     public void hide() { }
+    @Override public void pause() { }
+    @Override public void resume() { }
     @Override
     public void dispose() {
         stage.dispose();

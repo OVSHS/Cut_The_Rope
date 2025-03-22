@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.mario.cuttherope;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 
@@ -12,7 +13,8 @@ import java.io.IOException;
 import java.util.Date;
 
 public class ManejoUsuario {
-   private PerfilUsuario perfilUsuarioActual;
+
+    private PerfilUsuario perfilUsuarioActual;
 
     public ManejoUsuario() {
     }
@@ -73,8 +75,18 @@ public class ManejoUsuario {
         }
         return null;
     }
+    
+    public boolean actualizarPerfil(PerfilUsuario perfil) {
+    FileHandle folder = Gdx.files.local("usuario/" + perfil.getApodo());
+    folder.mkdirs();
+    FileHandle datosBin = folder.child("datos.bin");
+    return saveUserData(datosBin, perfil);
+}
+    
+    
 
-   public boolean saveUserData(FileHandle file, PerfilUsuario p) {
+    
+    public boolean saveUserData(FileHandle file, PerfilUsuario p) {
         try (DataOutputStream dos = new DataOutputStream(file.write(false))) {
             dos.writeUTF(p.getApodo());
             dos.writeUTF(p.getContrasena());
@@ -110,4 +122,3 @@ public class ManejoUsuario {
         }
     }
 }
-
