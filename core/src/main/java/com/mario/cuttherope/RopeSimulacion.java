@@ -84,6 +84,10 @@ public class RopeSimulacion {
         totalStars = (estrellas != null) ? estrellas.size() : 0;
 
     }
+    
+    public void actualizarCuerdas(List<Cuerda> cuerdas) {
+    this.listaCuerdas = cuerdas;
+}
 
     public void actualizar(float delta) {
         if (cuerpoOmNom == null) {

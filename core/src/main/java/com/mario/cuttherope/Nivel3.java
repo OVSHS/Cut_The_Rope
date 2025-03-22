@@ -106,7 +106,7 @@ public class Nivel3 implements Screen, InputProcessor {
         juegoTerminado = false;
         mundo.setContactListener(new ContactListener() {
             @Override
-            public void beginContact(Contact contact) {
+           public void beginContact(Contact contact) {
                 Body bodyA = contact.getFixtureA().getBody();
                 Body bodyB = contact.getFixtureB().getBody();
 

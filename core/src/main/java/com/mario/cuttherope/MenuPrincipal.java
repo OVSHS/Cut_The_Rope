@@ -48,7 +48,7 @@ public class MenuPrincipal implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 if (loginManager.hayJugadorLogueado()) {
                     
-                    game.setScreen(new Nivel3(game, loginManager, 1));
+                    game.setScreen(new Nivel5(game, loginManager, 1));
                 } else {
                     mostrarMensaje("Debes iniciar sesion para jugar.");
                 }
