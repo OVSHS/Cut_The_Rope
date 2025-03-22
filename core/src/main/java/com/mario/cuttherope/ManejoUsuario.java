@@ -13,13 +13,13 @@ import java.util.Date;
 
 public class ManejoUsuario {
 
-    private UserData usuarioDataActual;
+     private PerfilUsuario perfilUsuarioActual;
 
     public ManejoUsuario() {
     }
 
     public boolean hayJugadorLogueado() {
-        return (usuarioDataActual != null);
+        return perfilUsuarioActual != null;
     }
 
     public boolean registerJugador(String apodo, String contrasena, String nombreCompleto, String rutaAvatar) {
@@ -28,14 +28,16 @@ public class ManejoUsuario {
             return false;
         }
         folder.mkdirs();
-        UserData nuevoUsuario = new UserData();
-        nuevoUsuario.apodo = apodo;
-        nuevoUsuario.contrasena = contrasena;
-        nuevoUsuario.nombreCompleto = nombreCompleto;
-        nuevoUsuario.rutaAvatar = rutaAvatar;
-        nuevoUsuario.fechaRegistro = new Date().getTime();
+        PerfilUsuario nuevo = new PerfilUsuario();
+        nuevo.setApodo(apodo);
+        nuevo.setContrasena(contrasena);
+        nuevo.setNombreCompleto(nombreCompleto);
+        nuevo.setRutaAvatar(rutaAvatar);
+        long now = new Date().getTime();
+        nuevo.setFechaRegistro(now);
+        nuevo.setUltimaSesion(now);
         FileHandle file = folder.child("datos.bin");
-        return saveUserData(file, nuevoUsuario);
+        return saveUserData(file, nuevo);
     }
 
     public boolean login(String apodo, String contrasena) {
@@ -44,37 +46,42 @@ public class ManejoUsuario {
             return false;
         }
         FileHandle file = folder.child("datos.bin");
-        UserData data = loadUserData(file);
+        PerfilUsuario data = loadUserData(file);
         if (data == null) {
             return false;
         }
-        if (data.contrasena.equals(contrasena)) {
-            usuarioDataActual = data;
-            return true;
+        if (!data.getContrasena().equals(contrasena)) {
+            return false;
         }
-        return false;
+        data.setUltimaSesion(new Date().getTime());
+        saveUserData(file, data);
+        perfilUsuarioActual = data;
+        return true;
     }
 
     public void logout() {
-        usuarioDataActual = null;
+        perfilUsuarioActual = null;
+    }
+
+    public PerfilUsuario getPerfilUsuarioActual() {
+        return perfilUsuarioActual;
     }
 
     public String getUsuarioActual() {
-        if (usuarioDataActual != null) {
-            return usuarioDataActual.apodo;
+        if (perfilUsuarioActual != null) {
+            return perfilUsuarioActual.getApodo();
         }
         return null;
     }
 
-    private boolean saveUserData(FileHandle file, UserData data) {
-        try {
-            DataOutputStream dos = new DataOutputStream(file.write(false));
-            dos.writeUTF(data.apodo);
-            dos.writeUTF(data.contrasena);
-            dos.writeUTF(data.nombreCompleto);
-            dos.writeUTF(data.rutaAvatar);
-            dos.writeLong(data.fechaRegistro);
-            dos.close();
+    private boolean saveUserData(FileHandle file, PerfilUsuario p) {
+        try (DataOutputStream dos = new DataOutputStream(file.write(false))) {
+            dos.writeUTF(p.getApodo());
+            dos.writeUTF(p.getContrasena());
+            dos.writeUTF(p.getNombreCompleto());
+            dos.writeUTF(p.getRutaAvatar());
+            dos.writeLong(p.getFechaRegistro());
+            dos.writeLong(p.getUltimaSesion());
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -82,32 +89,23 @@ public class ManejoUsuario {
         }
     }
 
-    private UserData loadUserData(FileHandle file) {
+    private PerfilUsuario loadUserData(FileHandle file) {
         if (!file.exists()) {
             return null;
         }
-        UserData data = new UserData();
-        try {
-            DataInputStream dis = new DataInputStream(file.read());
-            data.apodo = dis.readUTF();
-            data.contrasena = dis.readUTF();
-            data.nombreCompleto = dis.readUTF();
-            data.rutaAvatar = dis.readUTF();
-            data.fechaRegistro = dis.readLong();
-            dis.close();
-            return data;
+        try (DataInputStream dis = new DataInputStream(file.read())) {
+            PerfilUsuario p = new PerfilUsuario();
+            p.setApodo(dis.readUTF());
+            p.setContrasena(dis.readUTF());
+            p.setNombreCompleto(dis.readUTF());
+            p.setRutaAvatar(dis.readUTF());
+            p.setFechaRegistro(dis.readLong());
+            p.setUltimaSesion(dis.readLong());
+            return p;
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
-    }
-
-    private static class UserData {
-        String apodo;
-        String contrasena;
-        String nombreCompleto;
-        String rutaAvatar;
-        long fechaRegistro;
     }
 }
 

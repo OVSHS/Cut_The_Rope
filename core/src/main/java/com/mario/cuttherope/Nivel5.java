@@ -447,7 +447,7 @@ public class Nivel5 implements Screen, InputProcessor {
                 if (volverAlMenu) {
                     game.setScreen(new MenuPrincipal(game, loginManager));
                 } else {
-                    game.setScreen(new Nivel3(game, loginManager, numeroNivel));
+                    game.setScreen(new Nivel5(game, loginManager, numeroNivel));
                 }
             }
         };

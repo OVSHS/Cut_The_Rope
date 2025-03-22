@@ -19,7 +19,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 
 public class MenuPrincipal implements Screen {
 
-    private Stage stage;
+      private Stage stage;
     private Skin skin;
     private MainGame game;
     private ManejoUsuario loginManager;
@@ -30,31 +30,26 @@ public class MenuPrincipal implements Screen {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         skin = new Skin(Gdx.files.internal("uiskin.json"));
-
         Table table = new Table();
         table.setFillParent(true);
         stage.addActor(table);
-
         Label titleLabel = new Label("Menu Principal", skin);
         TextButton btnJugar = new TextButton("Jugar", skin);
         TextButton btnCerrarSesion = new TextButton("Cerrar Sesion", skin);
-
         table.add(titleLabel).pad(20).row();
         table.add(btnJugar).pad(10).row();
         table.add(btnCerrarSesion).pad(10).row();
-
+        
         btnJugar.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 if (loginManager.hayJugadorLogueado()) {
-                    
-                    game.setScreen(new Nivel5(game, loginManager, 1));
+                    game.setScreen(new Nivel4(game, loginManager, 1));
                 } else {
                     mostrarMensaje("Debes iniciar sesion para jugar.");
                 }
             }
         });
-
         btnCerrarSesion.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -66,7 +61,6 @@ public class MenuPrincipal implements Screen {
 
     private void mostrarMensaje(String mensaje) {
         Dialog dialog = new Dialog("Aviso", skin) {
-            @Override
             protected void result(Object object) {
                 hide();
             }
