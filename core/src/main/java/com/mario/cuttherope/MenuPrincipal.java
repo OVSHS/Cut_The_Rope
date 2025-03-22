@@ -7,6 +7,8 @@ package com.mario.cuttherope;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -16,7 +18,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import java.util.Locale;
 
 public class MenuPrincipal implements Screen {
      private Stage stage;
@@ -31,8 +32,29 @@ public class MenuPrincipal implements Screen {
     private TextButton btnPreferenciasJuego;
     private TextButton btnCerrarSesion;
     
+    private Texture[] frames;
+    private int currentFrame = 0;
+    private float timeElapsed = 0;
+    private SpriteBatch batch;
+    
+    public void loadFrames() {
+        frames = new Texture[]{
+            new Texture("fotomenu1.png"),
+            new Texture("fotomenu2.png"),
+            new Texture("fotomenu3.png"),
+            new Texture("fotomenu4.png"),
+            new Texture("fotomenu5.png"),
+            new Texture("fotomenu4.png"),
+            new Texture("fotomenu3.png"),
+            new Texture("fotomenu2.png"),
+            new Texture("fotomenu1.png"),};
+
+    }
+    
     public MenuPrincipal(MainGame game, ManejoUsuario loginManager) {
         this.game = game;
+        batch = new SpriteBatch();
+        loadFrames();
         this.loginManager = loginManager;
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
@@ -129,6 +151,14 @@ public class MenuPrincipal implements Screen {
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        timeElapsed += delta;
+        if (timeElapsed > 0.225f) { // Change frame every 0.1 sec
+            currentFrame = (currentFrame + 1) % frames.length;
+            timeElapsed = 0;
+        }
+        batch.begin();
+        batch.draw(frames[currentFrame], 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        batch.end();
         stage.act(delta);
         stage.draw();
     }
@@ -146,5 +176,9 @@ public class MenuPrincipal implements Screen {
     public void dispose() {
         stage.dispose();
         skin.dispose();
+        for (Texture frame : frames) {
+            frame.dispose();
+        }
+        batch.dispose();
     }
 }

@@ -8,13 +8,12 @@ package com.mario.cuttherope;
  *
  * @author Mario
  */
-
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -33,6 +32,7 @@ import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
 
 public class PantallaPerfil implements Screen {
+
     private MainGame game;
     private ManejoUsuario manejoUsuario;
     private Stage stage;
@@ -40,10 +40,30 @@ public class PantallaPerfil implements Screen {
     private Image avatarImage;
     private FileHandle selectedAvatar;
     private Idiomas idioma;
+    private Texture[] frames;
+    private int currentFrame = 0;
+    private float timeElapsed = 0;
+    private SpriteBatch batch;
+
+    public void loadFrames() {
+        frames = new Texture[]{
+            new Texture("fotomenu1.png"),
+            new Texture("fotomenu2.png"),
+            new Texture("fotomenu3.png"),
+            new Texture("fotomenu4.png"),
+            new Texture("fotomenu5.png"),
+            new Texture("fotomenu4.png"),
+            new Texture("fotomenu3.png"),
+            new Texture("fotomenu2.png"),
+            new Texture("fotomenu1.png"),};
+
+    }
 
     public PantallaPerfil(MainGame game, ManejoUsuario manejoUsuario) {
         this.game = game;
         this.manejoUsuario = manejoUsuario;
+        batch = new SpriteBatch();
+        loadFrames();
         stage = new Stage(new ScreenViewport());
         skin = new Skin(Gdx.files.internal("uiskin.json"));
         Gdx.input.setInputProcessor(stage);
@@ -161,7 +181,9 @@ public class PantallaPerfil implements Screen {
     }
 
     private String formatoFecha(long fechaMillis) {
-        if (fechaMillis <= 0) return "-";
+        if (fechaMillis <= 0) {
+            return "-";
+        }
         Date date = new Date(fechaMillis);
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         return sdf.format(date);
@@ -176,6 +198,15 @@ public class PantallaPerfil implements Screen {
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        timeElapsed += delta;
+        if (timeElapsed > 0.225f) { // Change frame every 0.1 sec
+            currentFrame = (currentFrame + 1) % frames.length;
+            timeElapsed = 0;
+        }
+        batch.begin();
+        batch.draw(frames[currentFrame], 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        batch.end();
+
         stage.act(delta);
         stage.draw();
     }
@@ -185,12 +216,25 @@ public class PantallaPerfil implements Screen {
         stage.getViewport().update(width, height, true);
     }
 
-    @Override public void hide() {}
-    @Override public void pause() {}
-    @Override public void resume() {}
+    @Override
+    public void hide() {
+    }
+
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
+
     @Override
     public void dispose() {
         stage.dispose();
         skin.dispose();
+        for (Texture frame : frames) {
+            frame.dispose();
+        }
+        batch.dispose();
     }
 }
