@@ -29,27 +29,34 @@ public class IniciarSesion implements Screen {
     private Skin skin;
     private ManejoUsuario loginManager;
 
+    // Referencia a la clase de idiomas
+    private Idiomas idioma;
+
     public IniciarSesion(MainGame game) {
         this.game = game;
-        loginManager = new ManejoUsuario();
+        this.loginManager = new ManejoUsuario();
+
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         skin = new Skin(Gdx.files.internal("uiskin.json"));
+
+        idioma = Idiomas.getInstance();
 
         Table table = new Table();
         table.setFillParent(true);
         stage.addActor(table);
 
-        Label lblTitulo = new Label("Iniciar Sesion", skin);
-        Label lblUsuario = new Label("Usuario:", skin);
+        Label lblTitulo = new Label(idioma.get("lbl.iniciarSesion"), skin);
+        Label lblUsuario = new Label(idioma.get("lbl.usuario"), skin);
         final TextField tfUsuario = new TextField("", skin);
-        Label lblContrasena = new Label("Contrasena:", skin);
+
+        Label lblContrasena = new Label(idioma.get("lbl.contrasena"), skin);
         final TextField tfContrasena = new TextField("", skin);
         tfContrasena.setPasswordMode(true);
         tfContrasena.setPasswordCharacter('*');
 
-        TextButton btnAceptar = new TextButton("Aceptar", skin);
-        TextButton btnCancelar = new TextButton("Cancelar", skin);
+        TextButton btnAceptar = new TextButton(idioma.get("btn.aceptar"), skin);
+        TextButton btnCancelar = new TextButton(idioma.get("btn.cancelar"), skin);
 
         table.add(lblTitulo).colspan(2).pad(10).row();
         table.add(lblUsuario).pad(5);
@@ -62,17 +69,19 @@ public class IniciarSesion implements Screen {
         btnAceptar.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                String usuario = tfUsuario.getText();
-                String contrasena = tfContrasena.getText();
+                String usuario = tfUsuario.getText().trim();
+                String contrasena = tfContrasena.getText().trim();
+
                 if (usuario.isEmpty() || contrasena.isEmpty()) {
-                    mostrarMensaje("Campos vacios");
+                    mostrarMensaje(idioma.get("msg.camposVacios"));
                     return;
                 }
+
                 if (loginManager.login(usuario, contrasena)) {
-                    mostrarMensaje("Inicio de sesion exitoso");
+                    mostrarMensaje(idioma.get("msg.inicioExitoso"));
                     game.setScreen(new MenuPrincipal(game, loginManager));
                 } else {
-                    mostrarMensaje("Usuario o contrasena incorrectos");
+                    mostrarMensaje(idioma.get("msg.usuarioContrasenaIncorrectos"));
                 }
             }
         });
@@ -85,15 +94,15 @@ public class IniciarSesion implements Screen {
         });
     }
 
-    private void mostrarMensaje(String mensaje) {
-        Dialog dialog = new Dialog("Aviso", skin) {
+    private void mostrarMensaje(String texto) {
+        Dialog dialog = new Dialog(idioma.get("dialog.aviso"), skin) {
             @Override
             protected void result(Object object) {
                 hide();
             }
         };
-        dialog.text(mensaje);
-        dialog.button("OK", true);
+        dialog.text(texto);
+        dialog.button(idioma.get("dialog.ok"), true);
         dialog.show(stage);
     }
 
@@ -116,21 +125,17 @@ public class IniciarSesion implements Screen {
     }
 
     @Override
-    public void pause() {
-    }
+    public void pause() { }
 
     @Override
-    public void resume() {
-    }
+    public void resume() { }
 
     @Override
-    public void hide() {
-    }
+    public void hide() { }
 
     @Override
     public void dispose() {
         stage.dispose();
         skin.dispose();
     }
-
 }

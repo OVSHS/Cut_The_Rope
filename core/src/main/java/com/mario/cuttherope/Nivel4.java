@@ -51,6 +51,7 @@ public class Nivel4 implements Screen, InputProcessor {
     private ArrayList<Cuerda> listaCuerdas = new ArrayList<>();
     private ArrayList<StarObject> listaEstrellas = new ArrayList<>();
     private RopeSimulacion ropeSimulacion;
+    private Idiomas idioma;
 
     private Box2DDebugRenderer debugRenderer;
 
@@ -65,6 +66,7 @@ public class Nivel4 implements Screen, InputProcessor {
 
     @Override
     public void show() {
+        idioma = Idiomas.getInstance();
         mundo = new World(new Vector2(0, -9.8f), true);
         stage = new Stage(new ScreenViewport());
         camara = new OrthographicCamera(ANCHO_MUNDO, ALTO_MUNDO);
@@ -74,7 +76,7 @@ public class Nivel4 implements Screen, InputProcessor {
         debugRenderer = new Box2DDebugRenderer();
         shapeRenderer = new ShapeRenderer();
 
-        cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO/2f, 2f));
+        cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO / 2f, 2f));
         cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 5f));
 
         for (int i = 0; i < 6; i++) {
@@ -260,33 +262,33 @@ public class Nivel4 implements Screen, InputProcessor {
     }
 
     private void mostrarDialogoFelicidades() {
-        Dialog dialog = new Dialog("Felicidades", new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 game.setScreen(new MenuPrincipal(game, loginManager));
             }
         };
-        dialog.text("El dulce llego a la boca de OmNom.");
-        dialog.button("Aceptar", true);
+        dialog.text(idioma.get("dialog.felicidadesTexto"));
+        dialog.button(idioma.get("btn.aceptar"), true);
         dialog.show(stage);
     }
 
     private void mostrarDialogoFallo() {
 
-        Dialog dialog = new Dialog("Nivel Terminado", new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 boolean volverAlMenu = (boolean) object;
                 if (volverAlMenu) {
                     game.setScreen(new MenuPrincipal(game, loginManager));
                 } else {
-                    game.setScreen(new Nivel3(game, loginManager, numeroNivel));
+                    game.setScreen(new Nivel4(game, loginManager, numeroNivel));
                 }
             }
         };
-        dialog.text("El dulce se cayo. ¿Deseas repetir el nivel o volver al menu?");
-        dialog.button("Volver al menu", true);
-        dialog.button("Repetir nivel", false);
+        dialog.text(idioma.get("dialog.nivelTerminadoTexto"));
+        dialog.button(idioma.get("btn.volverAlMenu"), true);
+        dialog.button(idioma.get("btn.repetirNivel"), false);
         dialog.show(stage);
     }
 
@@ -317,17 +319,17 @@ public class Nivel4 implements Screen, InputProcessor {
 
     @Override
     public boolean touchDown(int i, int i1, int i2, int i3) {
-return false;
+        return false;
     }
 
     @Override
     public boolean touchUp(int i, int i1, int i2, int i3) {
-return false;
+        return false;
     }
 
     @Override
     public boolean touchCancelled(int i, int i1, int i2, int i3) {
-return false;
+        return false;
     }
 
     @Override
@@ -340,12 +342,12 @@ return false;
 
     @Override
     public boolean mouseMoved(int i, int i1) {
-return false;
-        }
+        return false;
+    }
 
     @Override
     public boolean scrolled(float f, float f1) {
-return false;
+        return false;
     }
 
 }

@@ -3,6 +3,7 @@
 package com.mario.cuttherope;
 // 
 //  @author Mario
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
@@ -38,6 +39,7 @@ public class Nivel2 implements Screen, InputProcessor {
     private ArrayList<Cuerda> listaCuerdas = new ArrayList<>();
     private ArrayList<StarObject> listaEstrellas = new ArrayList<>();
     private RopeSimulacion ropeSimulacion;
+    private Idiomas idioma;
 
     private Box2DDebugRenderer debugRenderer;
 
@@ -52,6 +54,7 @@ public class Nivel2 implements Screen, InputProcessor {
 
     @Override
     public void show() {
+        idioma = Idiomas.getInstance();
         mundo = new World(new Vector2(0, -9.8f), true);
         debugRenderer = new Box2DDebugRenderer();
 
@@ -242,21 +245,20 @@ public class Nivel2 implements Screen, InputProcessor {
     }
 
     private void mostrarDialogoFelicidades() {
-
-        Dialog dialog = new Dialog("¡Felicidades!", new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 game.setScreen(new MenuPrincipal(game, loginManager));
             }
         };
-        dialog.text("El dulce llego a la boca de OmNom.");
-        dialog.button("Aceptar", true);
+        dialog.text(idioma.get("dialog.felicidadesTexto"));
+        dialog.button(idioma.get("btn.aceptar"), true);
         dialog.show(stage);
     }
 
     private void mostrarDialogoFallo() {
 
-        Dialog dialog = new Dialog("Nivel Terminado", new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 boolean volverAlMenu = (boolean) object;
@@ -267,9 +269,9 @@ public class Nivel2 implements Screen, InputProcessor {
                 }
             }
         };
-        dialog.text("El dulce se cayo. ¿Deseas repetir el nivel o volver al menu?");
-        dialog.button("Volver al menu", true);
-        dialog.button("Repetir nivel", false);
+        dialog.text(idioma.get("dialog.nivelTerminadoTexto"));
+        dialog.button(idioma.get("btn.volverAlMenu"), true);
+        dialog.button(idioma.get("btn.repetirNivel"), false);
         dialog.show(stage);
     }
 

@@ -9,23 +9,26 @@ package com.mario.cuttherope;
  * @author Mario
  */
 public class PerfilUsuario {
-     private String apodo;
+  private String apodo;
     private String contrasena;
     private String nombreCompleto;
     private String rutaAvatar;
     private long fechaRegistro;
     private long ultimaSesion;
+    private float volumen; 
 
     public PerfilUsuario() {
     }
 
-    public PerfilUsuario(String apodo, String contrasena, String nombreCompleto, String rutaAvatar, long fechaRegistro, long ultimaSesion) {
+    public PerfilUsuario(String apodo, String contrasena, String nombreCompleto, String rutaAvatar,
+                         long fechaRegistro, long ultimaSesion, float volumen) {
         this.apodo = apodo;
         this.contrasena = contrasena;
         this.nombreCompleto = nombreCompleto;
         this.rutaAvatar = rutaAvatar;
         this.fechaRegistro = fechaRegistro;
         this.ultimaSesion = ultimaSesion;
+        this.volumen = volumen;
     }
 
     public String getApodo() {
@@ -74,5 +77,13 @@ public class PerfilUsuario {
 
     public void setUltimaSesion(long ultimaSesion) {
         this.ultimaSesion = ultimaSesion;
+    }
+
+    public float getVolumen() {
+        return volumen;
+    }
+
+    public void setVolumen(float volumen) {
+        this.volumen = volumen;
     }
 }

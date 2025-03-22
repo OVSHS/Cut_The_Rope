@@ -22,26 +22,49 @@ public class MenuInicio implements Screen {
     private Skin skin;
     private MainGame game;
 
+    private Label titleLabel;
+    private TextButton btnIniciarSesion;
+    private TextButton btnCrearJugador;
+    private TextButton btnSalir;
+
+    private Idiomas idioma;
+
     public MenuInicio(MainGame game) {
         this.game = game;
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         skin = new Skin(Gdx.files.internal("uiskin.json"));
 
+        idioma = Idiomas.getInstance();
+
         Table table = new Table();
         table.setFillParent(true);
+        table.center();                
+        table.defaults().pad(5);       
         stage.addActor(table);
 
-        Label titleLabel = new Label("Menu Inicio", skin);
-        TextButton btnIniciarSesion = new TextButton("Iniciar Sesion", skin);
-        TextButton btnCrearJugador = new TextButton("Crear Jugador", skin);
-        TextButton btnSalir = new TextButton("Salir", skin);
+        titleLabel = new Label(idioma.get("menu.inicio"), skin);
+        btnIniciarSesion = new TextButton(idioma.get("btn.iniciarSesion"), skin);
+        btnCrearJugador = new TextButton(idioma.get("btn.crearJugador"), skin);
+        btnSalir = new TextButton(idioma.get("btn.salir"), skin);
 
-        table.add(titleLabel).pad(20).row();
-        table.add(btnIniciarSesion).pad(10).row();
-        table.add(btnCrearJugador).pad(10).row();
-        table.add(btnSalir).pad(10).row();
+        
 
+        Table topRow = new Table();
+        topRow.add(titleLabel).padRight(30);   
+
+        table.add(topRow).colspan(3).padLeft(40).padBottom(20).row();
+
+       
+        table.add(btnIniciarSesion).colspan(3).center().pad(10).row();
+
+        
+        table.add(btnCrearJugador).colspan(3).center().pad(10).row();
+
+    
+        table.add(btnSalir).colspan(3).center().pad(10).row();
+
+  
         btnIniciarSesion.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -62,6 +85,19 @@ public class MenuInicio implements Screen {
                 Gdx.app.exit();
             }
         });
+
+    }
+
+    private void actualizarTextos() {
+        titleLabel.setText(idioma.get("menu.inicio"));
+        btnIniciarSesion.setText(idioma.get("btn.iniciarSesion"));
+        btnCrearJugador.setText(idioma.get("btn.crearJugador"));
+        btnSalir.setText(idioma.get("btn.salir"));
+    }
+
+    @Override
+    public void show() {
+        Gdx.input.setInputProcessor(stage);
     }
 
     @Override
@@ -72,10 +108,23 @@ public class MenuInicio implements Screen {
         stage.draw();
     }
 
-    @Override public void show() { Gdx.input.setInputProcessor(stage); }
-    @Override public void resize(int width, int height) { stage.getViewport().update(width, height, true); }
-    @Override public void hide() {}
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void dispose() { stage.dispose(); skin.dispose(); }
+    @Override
+    public void resize(int width, int height) {
+        stage.getViewport().update(width, height, true);
+    }
+
+    @Override
+    public void hide() { }
+
+    @Override
+    public void pause() { }
+
+    @Override
+    public void resume() { }
+
+    @Override
+    public void dispose() {
+        stage.dispose();
+        skin.dispose();
+    }
 }

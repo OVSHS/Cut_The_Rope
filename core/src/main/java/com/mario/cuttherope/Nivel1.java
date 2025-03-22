@@ -42,11 +42,10 @@ public class Nivel1 implements Screen, InputProcessor {
     private ArrayList<Cuerda> listaCuerdas = new ArrayList<>();
     private ArrayList<StarObject> listaEstrellas = new ArrayList<>();
     private RopeSimulacion ropeSimulacion;
-
-    private Box2DDebugRenderer debugRenderer; // O usamos MyDebugRenderer
-
+    private Box2DDebugRenderer debugRenderer;
     private final float ANCHO_MUNDO = 20f;
     private final float ALTO_MUNDO = 30f;
+    private Idiomas idioma;
 
     public Nivel1(MainGame game, ManejoUsuario loginManager, int nivel) {
         this.game = game;
@@ -56,9 +55,9 @@ public class Nivel1 implements Screen, InputProcessor {
 
     @Override
     public void show() {
+        idioma = Idiomas.getInstance();
         mundo = new World(new Vector2(0, -9.8f), true);
         debugRenderer = new Box2DDebugRenderer();
-
         shapeRenderer = new ShapeRenderer();
         stage = new Stage(new ScreenViewport());
         camara = new OrthographicCamera(ANCHO_MUNDO, ALTO_MUNDO);
@@ -66,24 +65,15 @@ public class Nivel1 implements Screen, InputProcessor {
         camara.update();
         hudCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         hudCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
         batchJuego = new SpriteBatch();
-
-        // Crear cuerpos principales
         cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO / 2f, 3f));
         cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 5f));
         Body anclaje = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 2f));
-
-        // Crear la cuerda y agregarla a la lista
         Cuerda cuerda = new Cuerda(anclaje, cuerpoDulce, mundo);
         listaCuerdas.add(cuerda);
-
-        // Estrellas 
         listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, 15f)));
         listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, 10f)));
         listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, 6f)));
-
-        // Inicializar la simulación de la cuerda
         ropeSimulacion = new RopeSimulacion(game, loginManager, numeroNivel, mundo);
         ropeSimulacion.inicializarElementos(cuerpoOmNom, cuerpoDulce, listaEstrellas, listaCuerdas, mundo);
         mundo.setContactListener(new ContactListener() {
@@ -91,65 +81,42 @@ public class Nivel1 implements Screen, InputProcessor {
             public void beginContact(Contact contact) {
                 Body bodyA = contact.getFixtureA().getBody();
                 Body bodyB = contact.getFixtureB().getBody();
-
                 if ((bodyA.getUserData() != null && bodyA.getUserData().equals("dulce")
                         && bodyB.getUserData() != null && bodyB.getUserData().equals("omnom"))
                         || (bodyB.getUserData() != null && bodyB.getUserData().equals("dulce")
                         && bodyA.getUserData() != null && bodyA.getUserData().equals("omnom"))) {
-
                     if (!juegoTerminado) {
                         juegoTerminado = true;
                         Gdx.app.postRunnable(() -> {
-                            // Destruir cuerpo del dulce
                             if (cuerpoDulce != null) {
                                 mundo.destroyBody(cuerpoDulce);
                                 cuerpoDulce = null;
                             }
-
                             ropeSimulacion.setDulceComido(true);
-
-                            // Se muestra el dialogo de felicitaciones o pasar a menu
                             mostrarDialogoFelicidades();
                         });
                     }
                 }
             }
-
-            @Override
-            public void endContact(Contact contact) {
-            }
-
-            @Override
-            public void preSolve(Contact contact, Manifold oldManifold) {
-            }
-
-            @Override
-            public void postSolve(Contact contact, ContactImpulse impulse) {
-            }
+            @Override public void endContact(Contact contact) { }
+            @Override public void preSolve(Contact contact, Manifold oldManifold) { }
+            @Override public void postSolve(Contact contact, ContactImpulse impulse) { }
         });
-
-        // Configurar el multiplexer de inputs
         InputMultiplexer multiplexer = new InputMultiplexer(stage, this);
         Gdx.input.setInputProcessor(multiplexer);
-
     }
 
     @Override
     public void render(float delta) {
         mundo.step(delta, 6, 2);
-
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
         debugRenderer.setDrawBodies(false);
         debugRenderer.render(mundo, camara.combined);
         debugRenderer.setDrawBodies(true);
-
         stage.act(delta);
         stage.draw();
-
         ropeSimulacion.actualizar(delta);
-
         batchJuego.setProjectionMatrix(camara.combined);
         batchJuego.begin();
         ropeSimulacion.render(batchJuego);
@@ -167,7 +134,6 @@ public class Nivel1 implements Screen, InputProcessor {
         } catch (Exception e) {
             Gdx.app.error("error", "Error al renderizar HUD", e);
         }
-
         if (!juegoTerminado && cuerpoDulce.getPosition().y < -5) {
             juegoTerminado = true;
             mostrarDialogoFallo();
@@ -226,37 +192,32 @@ public class Nivel1 implements Screen, InputProcessor {
     private StarObject crearEstrella(Vector2 pos) {
         Pieza p = new Pieza(0.4f, BodyDef.BodyType.KinematicBody);
         p.esSensor = true;
-
         BodyDef bd = new BodyDef();
         bd.type = BodyDef.BodyType.KinematicBody;
         bd.position.set(pos);
-
         Body body = mundo.createBody(bd);
-
         FixtureDef fd = new FixtureDef();
         fd.shape = p.forma;
         fd.isSensor = true;
-
         body.createFixture(fd);
         p.forma.dispose();
-
         return new StarObject(p, body);
     }
 
     private void mostrarDialogoFelicidades() {
-        Dialog dialog = new Dialog("Felicidades", new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 game.setScreen(new MenuPrincipal(game, loginManager));
             }
         };
-        dialog.text("El dulce llego a la boca de OmNom.");
-        dialog.button("Aceptar", true);
+        dialog.text(idioma.get("dialog.felicidadesTexto"));
+        dialog.button(idioma.get("btn.aceptar"), true);
         dialog.show(stage);
     }
 
     private void mostrarDialogoFallo() {
-        Dialog dialog = new Dialog("Nivel Terminado", new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 boolean volverAlMenu = (boolean) object;
@@ -267,9 +228,9 @@ public class Nivel1 implements Screen, InputProcessor {
                 }
             }
         };
-        dialog.text("El dulce se cayo. ¿Deseas repetir el nivel o volver al menu?");
-        dialog.button("Volver al menu", true);
-        dialog.button("Repetir nivel", false);
+        dialog.text(idioma.get("dialog.nivelTerminadoTexto"));
+        dialog.button(idioma.get("btn.volverAlMenu"), true);
+        dialog.button(idioma.get("btn.repetirNivel"), false);
         dialog.show(stage);
     }
 
@@ -281,82 +242,31 @@ public class Nivel1 implements Screen, InputProcessor {
         return false;
     }
 
-    @Override
-    public boolean keyDown(int keycode) {
-        return false;
-    }
-
-    @Override
-    public boolean keyUp(int keycode) {
-        return false;
-    }
-
-    @Override
-    public boolean keyTyped(char character) {
-        return false;
-    }
-
-    @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-        return false;
-    }
-
-    @Override
-    public boolean scrolled(float amountX, float amountY) {
-        return false;
-    }
-
+    @Override public boolean keyDown(int keycode) { return false; }
+    @Override public boolean keyUp(int keycode) { return false; }
+    @Override public boolean keyTyped(char character) { return false; }
+    @Override public boolean touchDown(int screenX, int screenY, int pointer, int button) { return false; }
+    @Override public boolean touchUp(int screenX, int screenY, int pointer, int button) { return false; }
+    @Override public boolean mouseMoved(int screenX, int screenY) { return false; }
+    @Override public boolean scrolled(float amountX, float amountY) { return false; }
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
     }
-
-    @Override
-    public void pause() {
-    }
-
-    @Override
-    public void resume() {
-    }
-
+    @Override public void pause() { }
+    @Override public void resume() { }
     @Override
     public void hide() {
         dispose();
     }
-
     @Override
     public void dispose() {
         shapeRenderer.dispose();
-        if (stage != null) {
-            stage.dispose();
-        }
-        if (ropeSimulacion != null) {
-            ropeSimulacion.dispose();
-        }
-        if (mundo != null) {
-            mundo.dispose();
-        }
-        if (batchJuego != null) {
-            batchJuego.dispose();
-        }
-        if (debugRenderer != null) {
-            debugRenderer.dispose();
-        }
-
+        if (stage != null) { stage.dispose(); }
+        if (ropeSimulacion != null) { ropeSimulacion.dispose(); }
+        if (mundo != null) { mundo.dispose(); }
+        if (batchJuego != null) { batchJuego.dispose(); }
+        if (debugRenderer != null) { debugRenderer.dispose(); }
     }
-
-    @Override
-    public boolean touchCancelled(int i, int i1, int i2, int i3) {
-        return false;
-    }
+    @Override public boolean touchCancelled(int i, int i1, int i2, int i3) { return false; }
 }

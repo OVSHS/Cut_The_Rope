@@ -12,8 +12,7 @@ import java.io.IOException;
 import java.util.Date;
 
 public class ManejoUsuario {
-
-     private PerfilUsuario perfilUsuarioActual;
+   private PerfilUsuario perfilUsuarioActual;
 
     public ManejoUsuario() {
     }
@@ -23,7 +22,7 @@ public class ManejoUsuario {
     }
 
     public boolean registerJugador(String apodo, String contrasena, String nombreCompleto, String rutaAvatar) {
-        FileHandle folder = Gdx.files.local("usuarios/" + apodo);
+        FileHandle folder = Gdx.files.local("usuario/" + apodo);
         if (folder.exists()) {
             return false;
         }
@@ -36,12 +35,13 @@ public class ManejoUsuario {
         long now = new Date().getTime();
         nuevo.setFechaRegistro(now);
         nuevo.setUltimaSesion(now);
+        nuevo.setVolumen(1.0f);
         FileHandle file = folder.child("datos.bin");
         return saveUserData(file, nuevo);
     }
 
     public boolean login(String apodo, String contrasena) {
-        FileHandle folder = Gdx.files.local("usuarios/" + apodo);
+        FileHandle folder = Gdx.files.local("usuario/" + apodo);
         if (!folder.exists()) {
             return false;
         }
@@ -74,7 +74,7 @@ public class ManejoUsuario {
         return null;
     }
 
-    private boolean saveUserData(FileHandle file, PerfilUsuario p) {
+   public boolean saveUserData(FileHandle file, PerfilUsuario p) {
         try (DataOutputStream dos = new DataOutputStream(file.write(false))) {
             dos.writeUTF(p.getApodo());
             dos.writeUTF(p.getContrasena());
@@ -82,6 +82,7 @@ public class ManejoUsuario {
             dos.writeUTF(p.getRutaAvatar());
             dos.writeLong(p.getFechaRegistro());
             dos.writeLong(p.getUltimaSesion());
+            dos.writeFloat(p.getVolumen());
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -101,6 +102,7 @@ public class ManejoUsuario {
             p.setRutaAvatar(dis.readUTF());
             p.setFechaRegistro(dis.readLong());
             p.setUltimaSesion(dis.readLong());
+            p.setVolumen(dis.readFloat());
             return p;
         } catch (IOException e) {
             e.printStackTrace();
