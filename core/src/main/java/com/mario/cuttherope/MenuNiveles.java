@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -32,21 +33,22 @@ public class MenuNiveles implements Screen {
     private Texture[] frames;
     private int currentFrame = 0;
     private float timeElapsed = 0;
-    
+
     // Texturas
     private Texture levelButtonTexture;
     private Texture lockedLevelButtonTexture;
     private Texture backButtonTexture;
-    
+    private Texture logoTexture;
+
     // Configuración de niveles
     private int maxLevels = 5; // Total number of levels
     private int unlockedLevels; // Levels unlocked by the player
     private int columnsPerRow = 3; // Reduced columns for better spacing
-    
+
     // Fuentes
     private BitmapFont titleFont;
     private BitmapFont levelFont;
-    
+
     public void loadFrames() {
         frames = new Texture[]{
             new Texture("fotomenu1.png"),
@@ -73,26 +75,30 @@ public class MenuNiveles implements Screen {
     public void show() {
         batch = new SpriteBatch();
         stage = new Stage(new ScreenViewport());
-        
+
         // Create fonts
         createFonts();
-        
+
         // Load textures
         levelButtonTexture = new Texture("level_button.png");
         lockedLevelButtonTexture = new Texture("level_button_locked.png");
         backButtonTexture = new Texture("back_button.png");
+        logoTexture = new Texture("title_banner.png"); // Asegúrate de tener esta textura
 
         // Create main table to organize the layout
         Table mainTable = new Table();
         mainTable.setFillParent(true);
-        
-        // Add title
-        Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, Color.WHITE);
-        Label titleLabel = new Label("SELECT LEVEL", titleStyle);
-        
+
+        // Añadir espacio en la parte superior
+        mainTable.add().height(200).row(); // Espacio adicional arriba
+
+        // Logo en lugar de título
+        Image logoImage = new Image(logoTexture);
+        mainTable.add(logoImage).padBottom(60).row(); // Mayor padding abajo del logo
+
         // Create a table for the level buttons grid
         Table levelGrid = new Table();
-        levelGrid.defaults().pad(20); // Increased padding for better spacing
+        levelGrid.defaults().pad(10); // Reduced padding for better spacing
 
         // Add level buttons to the grid
         for (int i = 1; i <= maxLevels; i++) {
@@ -102,63 +108,59 @@ public class MenuNiveles implements Screen {
             if (isUnlocked) {
                 // Create a stack to hold button and number
                 Stack buttonStack = new Stack();
-                
+
                 // Create an unlocked level button with better styling
                 Button.ButtonStyle buttonStyle = new Button.ButtonStyle();
                 buttonStyle.up = new TextureRegionDrawable(levelButtonTexture);
                 buttonStyle.down = new TextureRegionDrawable(levelButtonTexture);
-                
+
                 Button levelButton = new Button(buttonStyle);
-                
+
                 // Create label for level number
                 Label.LabelStyle numberStyle = new Label.LabelStyle(levelFont, Color.WHITE);
                 Label numberLabel = new Label(String.valueOf(levelNum), numberStyle);
                 numberLabel.setAlignment(Align.center);
-                
+
                 // Add components to stack
                 buttonStack.add(levelButton);
                 buttonStack.add(numberLabel);
-                
+
                 // Add hover effect and click handler to the stack
                 buttonStack.addListener(new ClickListener() {
                     public void enter(InputEvent event, float x, float y, int pointer, int button) {
-                        buttonStack.setScale(1.1f); // Grow on hover
+                        buttonStack.setScale(1.05f); // Efecto hover reducido
                     }
-                    
+
                     public void exit(InputEvent event, float x, float y, int pointer, int button) {
-                        buttonStack.setScale(1.0f); // Return to normal size
+                        buttonStack.setScale(1.0f);
                     }
-                    
+
                     @Override
                     public void clicked(InputEvent event, float x, float y) {
-                        // Launch the appropriate level screen
                         launchLevel(levelNum);
                     }
                 });
-                
-                // Add to the grid with larger dimensions
-                levelGrid.add(buttonStack).pad(15).width(120).height(120);
+
+                // Botones más pequeños
+                levelGrid.add(buttonStack).pad(10).width(80).height(80);
             } else {
-                // Create a stack for locked level
+                // Similar para los niveles bloqueados
                 Stack buttonStack = new Stack();
-                
-                // Create a locked level button
+
                 Button.ButtonStyle style = new Button.ButtonStyle();
                 style.up = new TextureRegionDrawable(lockedLevelButtonTexture);
                 style.down = new TextureRegionDrawable(lockedLevelButtonTexture);
                 Button levelButton = new Button(style);
-                
-                // Create label for level number
+
                 Label.LabelStyle numberStyle = new Label.LabelStyle(levelFont, Color.GRAY);
                 Label numberLabel = new Label(String.valueOf(levelNum), numberStyle);
                 numberLabel.setAlignment(Align.center);
-                
-                // Add components to stack
+
                 buttonStack.add(levelButton);
                 buttonStack.add(numberLabel);
-                
-                // Add to the grid
-                levelGrid.add(buttonStack).pad(15).width(120).height(120);
+
+                // Mismo tamaño reducido
+                levelGrid.add(buttonStack).pad(10).width(80).height(80);
             }
 
             // Start a new row after columnsPerRow buttons
@@ -167,17 +169,24 @@ public class MenuNiveles implements Screen {
             }
         }
 
-        // Create back button with animation effect
-        Button backButton = new Button(new TextureRegionDrawable(backButtonTexture));
+        // Crear botón de regreso con texto
+        TextButton.TextButtonStyle backButtonStyle = new TextButton.TextButtonStyle();
+        backButtonStyle.up = new TextureRegionDrawable(backButtonTexture);
+        backButtonStyle.down = new TextureRegionDrawable(backButtonTexture);
+        backButtonStyle.font = titleFont; // Usar fuente existente
+        backButtonStyle.fontColor = Color.WHITE; // Color del texto
+
+        TextButton backButton = new TextButton("GO BACK", backButtonStyle);
+
         backButton.addListener(new ClickListener() {
             public void enter(InputEvent event, float x, float y, int pointer, int button) {
-                backButton.setScale(1.1f); // Grow on hover
+                backButton.setScale(1.1f);
             }
-            
+
             public void exit(InputEvent event, float x, float y, int pointer, int button) {
-                backButton.setScale(1.0f); // Return to normal size
+                backButton.setScale(1.0f);
             }
-            
+
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 game.setScreen(new MenuPrincipal(game, loginManager));
@@ -185,23 +194,21 @@ public class MenuNiveles implements Screen {
         });
 
         // Add elements to the main table with better spacing
-        mainTable.pad(40);
-        mainTable.top();
-        mainTable.add(titleLabel).padBottom(40).row();
+        mainTable.pad(30);
         mainTable.add(levelGrid).expand().row();
-        mainTable.add(backButton).left().bottom().pad(20).width(80).height(80);
+        mainTable.add(backButton).left().bottom().pad(20).width(100).height(60);
 
         // Add the table to the stage
         stage.addActor(mainTable);
         Gdx.input.setInputProcessor(stage);
     }
-    
+
     private void createFonts() {
         // Simple font setup without FreeType dependency
         titleFont = new BitmapFont();
-        titleFont.getData().setScale(2.5f);
+        titleFont.getData().setScale(1.0f);
         titleFont.setColor(Color.YELLOW);
-        
+
         levelFont = new BitmapFont();
         levelFont.getData().setScale(2.0f); // Larger number font
         levelFont.setColor(Color.WHITE);
@@ -211,7 +218,7 @@ public class MenuNiveles implements Screen {
         // Launch the appropriate level based on the level number
         switch (levelNum) {
             case 1:
-                game.setScreen(new Nivel1(game, loginManager, 1));
+                game.setScreen(new Nivel5(game, loginManager, 1));
                 break;
             case 2:
                 game.setScreen(new Nivel2(game, loginManager, 2));
@@ -234,10 +241,10 @@ public class MenuNiveles implements Screen {
     public void render(float delta) {
         // Subtle animated background color
         float time = Gdx.graphics.getFrameId() % 300 / 300f;
-        float r = 0.76f + 0.04f * (float)Math.sin(time * 6.28f);
-        float g = 0.67f + 0.04f * (float)Math.cos(time * 6.28f);
+        float r = 0.76f + 0.04f * (float) Math.sin(time * 6.28f);
+        float g = 0.67f + 0.04f * (float) Math.cos(time * 6.28f);
         float b = 0.5f;
-        
+
         Gdx.gl.glClearColor(r, g, b, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -281,6 +288,7 @@ public class MenuNiveles implements Screen {
         levelButtonTexture.dispose();
         lockedLevelButtonTexture.dispose();
         backButtonTexture.dispose();
+        logoTexture.dispose(); // No olvides liberar la textura del logo
         titleFont.dispose();
         levelFont.dispose();
     }

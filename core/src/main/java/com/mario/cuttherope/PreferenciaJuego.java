@@ -11,6 +11,7 @@ package com.mario.cuttherope;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -24,7 +25,8 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import java.util.Locale;
 
 public class PreferenciaJuego implements Screen {
-   private MainGame game;
+
+    private MainGame game;
     private ManejoUsuario manejoUsuario;
     private Stage stage;
     private Skin skin;
@@ -36,10 +38,29 @@ public class PreferenciaJuego implements Screen {
     private TextButton btnRegresar;
     private TextButton btnEnglish;
     private TextButton btnSpanish;
+    private Texture[] frames;
+    private int currentFrame = 0;
+    private float timeElapsed = 0;
+
+    public void loadFrames() {
+        frames = new Texture[]{
+            new Texture("fotomenu1.png"),
+            new Texture("fotomenu2.png"),
+            new Texture("fotomenu3.png"),
+            new Texture("fotomenu4.png"),
+            new Texture("fotomenu5.png"),
+            new Texture("fotomenu4.png"),
+            new Texture("fotomenu3.png"),
+            new Texture("fotomenu2.png"),
+            new Texture("fotomenu1.png"),};
+
+    }
 
     public PreferenciaJuego(MainGame game, ManejoUsuario manejoUsuario) {
         this.game = game;
         this.manejoUsuario = manejoUsuario;
+        
+        loadFrames();
 
         stage = new Stage(new ScreenViewport());
         skin = new Skin(Gdx.files.internal("uiskin.json"));
@@ -149,9 +170,17 @@ public class PreferenciaJuego implements Screen {
     }
 
     @Override
-    public void hide() { }
-    @Override public void pause() { }
-    @Override public void resume() { }
+    public void hide() {
+    }
+
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
+
     @Override
     public void dispose() {
         stage.dispose();
