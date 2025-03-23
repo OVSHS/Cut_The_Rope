@@ -5,13 +5,19 @@
 package com.mario.cuttherope;
 
 import com.badlogic.gdx.Screen;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  * @author Maria Gabriela
  */
 public class Ranking implements Screen{
-
+    public List<PerfilUsuario> jugadores;
+    
+    public Ranking() {
+        this.jugadores = new ArrayList<>();
+    }
     @Override
     public void show() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
