@@ -144,7 +144,7 @@ public class Nivel2 implements Screen, InputProcessor {
     public void render(float delta) {
         mundo.step(delta, 6, 2);
 
-        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClearColor(0.76f, 0.67f, 0.5f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         debugRenderer.setDrawBodies(false);

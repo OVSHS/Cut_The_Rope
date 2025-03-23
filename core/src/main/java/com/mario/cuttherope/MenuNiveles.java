@@ -20,7 +20,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 /**
- * Menu de selección de niveles para el juego Cut The Rope
+ *
  * @author Maria Gabriela
  */
 public class MenuNiveles implements Screen {
@@ -211,7 +211,7 @@ public class MenuNiveles implements Screen {
         // Launch the appropriate level based on the level number
         switch (levelNum) {
             case 1:
-                game.setScreen(new Nivel5(game, loginManager, 1));
+                game.setScreen(new Nivel1(game, loginManager, 1));
                 break;
             case 2:
                 game.setScreen(new Nivel2(game, loginManager, 2));

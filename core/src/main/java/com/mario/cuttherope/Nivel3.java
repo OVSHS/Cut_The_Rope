@@ -57,7 +57,7 @@ public class Nivel3 implements Screen, InputProcessor {
 
     @Override
     public void show() {
-         idioma = Idiomas.getInstance();
+        idioma = Idiomas.getInstance();
         mundo = new World(new Vector2(0, -9.8f), true);
         debugRenderer = new Box2DDebugRenderer();
 
@@ -108,7 +108,7 @@ public class Nivel3 implements Screen, InputProcessor {
         juegoTerminado = false;
         mundo.setContactListener(new ContactListener() {
             @Override
-           public void beginContact(Contact contact) {
+            public void beginContact(Contact contact) {
                 Body bodyA = contact.getFixtureA().getBody();
                 Body bodyB = contact.getFixtureB().getBody();
 
@@ -153,7 +153,7 @@ public class Nivel3 implements Screen, InputProcessor {
     public void render(float delta) {
         mundo.step(delta, 6, 2);
 
-        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClearColor(0.76f, 0.67f, 0.5f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         debugRenderer.setDrawBodies(false);
@@ -199,7 +199,7 @@ public class Nivel3 implements Screen, InputProcessor {
         fd.shape = p.forma;
         fd.isSensor = true;
         body.createFixture(fd);
-        body.setUserData("omnom");  
+        body.setUserData("omnom");
         p.forma.dispose();
         return body;
     }
@@ -254,7 +254,7 @@ public class Nivel3 implements Screen, InputProcessor {
     }
 
     private void mostrarDialogoFelicidades() {
-         Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 game.setScreen(new MenuPrincipal(game, loginManager));
@@ -267,7 +267,7 @@ public class Nivel3 implements Screen, InputProcessor {
 
     private void mostrarDialogoFallo() {
 
-         Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 boolean volverAlMenu = (boolean) object;

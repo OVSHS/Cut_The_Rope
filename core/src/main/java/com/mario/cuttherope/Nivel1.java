@@ -98,9 +98,18 @@ public class Nivel1 implements Screen, InputProcessor {
                     }
                 }
             }
-            @Override public void endContact(Contact contact) { }
-            @Override public void preSolve(Contact contact, Manifold oldManifold) { }
-            @Override public void postSolve(Contact contact, ContactImpulse impulse) { }
+
+            @Override
+            public void endContact(Contact contact) {
+            }
+
+            @Override
+            public void preSolve(Contact contact, Manifold oldManifold) {
+            }
+
+            @Override
+            public void postSolve(Contact contact, ContactImpulse impulse) {
+            }
         });
         InputMultiplexer multiplexer = new InputMultiplexer(stage, this);
         Gdx.input.setInputProcessor(multiplexer);
@@ -109,7 +118,7 @@ public class Nivel1 implements Screen, InputProcessor {
     @Override
     public void render(float delta) {
         mundo.step(delta, 6, 2);
-        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClearColor(0.76f, 0.67f, 0.5f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         debugRenderer.setDrawBodies(false);
         debugRenderer.render(mundo, camara.combined);
@@ -205,10 +214,10 @@ public class Nivel1 implements Screen, InputProcessor {
     }
 
     private void mostrarDialogoFelicidades() {
-        ManejoUsuario manejousuario= new ManejoUsuario();
-        
+        ManejoUsuario manejousuario = new ManejoUsuario();
+
         manejousuario.desbloquearSiguienteNivel();
-        
+
         Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
@@ -246,31 +255,81 @@ public class Nivel1 implements Screen, InputProcessor {
         return false;
     }
 
-    @Override public boolean keyDown(int keycode) { return false; }
-    @Override public boolean keyUp(int keycode) { return false; }
-    @Override public boolean keyTyped(char character) { return false; }
-    @Override public boolean touchDown(int screenX, int screenY, int pointer, int button) { return false; }
-    @Override public boolean touchUp(int screenX, int screenY, int pointer, int button) { return false; }
-    @Override public boolean mouseMoved(int screenX, int screenY) { return false; }
-    @Override public boolean scrolled(float amountX, float amountY) { return false; }
+    @Override
+    public boolean keyDown(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyTyped(char character) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        return false;
+    }
+
+    @Override
+    public boolean scrolled(float amountX, float amountY) {
+        return false;
+    }
+
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
     }
-    @Override public void pause() { }
-    @Override public void resume() { }
+
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
+
     @Override
     public void hide() {
         dispose();
     }
+
     @Override
     public void dispose() {
         shapeRenderer.dispose();
-        if (stage != null) { stage.dispose(); }
-        if (ropeSimulacion != null) { ropeSimulacion.dispose(); }
-        if (mundo != null) { mundo.dispose(); }
-        if (batchJuego != null) { batchJuego.dispose(); }
-        if (debugRenderer != null) { debugRenderer.dispose(); }
+        if (stage != null) {
+            stage.dispose();
+        }
+        if (ropeSimulacion != null) {
+            ropeSimulacion.dispose();
+        }
+        if (mundo != null) {
+            mundo.dispose();
+        }
+        if (batchJuego != null) {
+            batchJuego.dispose();
+        }
+        if (debugRenderer != null) {
+            debugRenderer.dispose();
+        }
     }
-    @Override public boolean touchCancelled(int i, int i1, int i2, int i3) { return false; }
+
+    @Override
+    public boolean touchCancelled(int i, int i1, int i2, int i3) {
+        return false;
+    }
 }
