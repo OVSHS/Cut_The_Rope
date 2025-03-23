@@ -85,7 +85,7 @@ public class MenuPrincipal implements Screen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 if (loginManager.hayJugadorLogueado()) {
-                    game.setScreen(new Nivel4(game, loginManager, 1));
+                    game.setScreen(new MenuNiveles(game, loginManager));
                 } else {
                     mostrarMensaje(idioma.get("msg.debesIniciarSesionParaJugar"));
                 }

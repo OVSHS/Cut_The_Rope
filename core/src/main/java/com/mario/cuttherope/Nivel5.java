@@ -170,7 +170,6 @@ public class Nivel5 implements Screen, InputProcessor {
                     }
                 }
 
-                // Check collision between candy and anchor areas
                 Body dulceBody = null;
                 Body areaBody = null;
 
@@ -187,12 +186,10 @@ public class Nivel5 implements Screen, InputProcessor {
                 }
 
                 if (dulceBody != null && areaBody != null) {
-                    Gdx.app.log("Contact", "Dulce entró en contacto con área de anclaje");
 
                     // Find the corresponding anchor area
                     for (AreaAnclaje area : listaAreasAnclaje) {
                         if (area.areaSensor == areaBody && !area.creadaCuerda) {
-                            Gdx.app.log("Contact", "Marcando área para crear cuerda en el próximo frame");
                             // Instead of creating the rope here, add the area to pending list
                             pendingRopeCreations.add(area);
                             break;
@@ -203,17 +200,14 @@ public class Nivel5 implements Screen, InputProcessor {
 
             @Override
             public void endContact(Contact contact) {
-                // No necesitamos hacer nada aquí por ahora
             }
 
             @Override
             public void preSolve(Contact contact, Manifold oldManifold) {
-                // No necesitamos hacer nada aquí por ahora
             }
 
             @Override
             public void postSolve(Contact contact, ContactImpulse impulse) {
-                // No necesitamos hacer nada aquí por ahora
             }
         });
 
@@ -225,9 +219,13 @@ public class Nivel5 implements Screen, InputProcessor {
     public void render(float delta) {
         for (AreaAnclaje area : pendingRopeCreations) {
             if (!area.creadaCuerda) {
-                Gdx.app.log("Render", "Creando nueva cuerda en área");
                 Cuerda nuevaCuerda = new Cuerda(area.anclaje, cuerpoDulce, mundo);
                 nuevaCuerda.setLongitud(3f);
+                // Apply an initial small impulse to help settle the physics
+                if (cuerpoDulce != null) {
+                    cuerpoDulce.applyLinearImpulse(new Vector2(0, -0.1f),
+                            cuerpoDulce.getWorldCenter(), true);
+                }
                 listaCuerdas.add(nuevaCuerda);
                 area.creadaCuerda = true;
             }
@@ -236,20 +234,19 @@ public class Nivel5 implements Screen, InputProcessor {
 
         mundo.step(delta, 6, 2);
 
-        Gdx.gl.glClearColor(0.76f, 0.67f, 0.5f, 1); 
+        Gdx.gl.glClearColor(0.76f, 0.67f, 0.5f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         debugRenderer.render(mundo, camara.combined);
 
         shapeRenderer.setProjectionMatrix(camara.combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(0.5f, 0.3f, 0.1f, 1); 
+        shapeRenderer.setColor(0.5f, 0.3f, 0.1f, 1);
 
         for (AreaAnclaje area : listaAreasAnclaje) {
             Vector2 pos = area.areaSensor.getPosition();
             float radio = area.radio;
 
-            // Dibujar círculo punteado (aproximación con segmentos separados)
             int segmentos = 20;
             float anguloIncremento = 360f / segmentos;
 
@@ -320,7 +317,6 @@ public class Nivel5 implements Screen, InputProcessor {
     private AreaAnclaje crearAreaAnclaje(Vector2 pos, float radio) {
         Body anclaje = crearAnclaje(pos);
 
-
         BodyDef areaDef = new BodyDef();
         areaDef.type = BodyDef.BodyType.StaticBody;
         areaDef.position.set(pos);
@@ -331,7 +327,7 @@ public class Nivel5 implements Screen, InputProcessor {
 
         FixtureDef areaFixture = new FixtureDef();
         areaFixture.shape = areaShape;
-        areaFixture.isSensor = true;  
+        areaFixture.isSensor = true;
 
         areaBody.createFixture(areaFixture);
         areaBody.setUserData("areaAnclaje");
@@ -430,7 +426,7 @@ public class Nivel5 implements Screen, InputProcessor {
         Dialog dialog = new Dialog("Felicidades", new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
-                game.setScreen(new MenuPrincipal(game, loginManager));
+                game.setScreen(new MenuNiveles(game, loginManager));
             }
         };
         dialog.text("El dulce llego a la boca de OmNom.");
@@ -445,7 +441,7 @@ public class Nivel5 implements Screen, InputProcessor {
             protected void result(Object object) {
                 boolean volverAlMenu = (boolean) object;
                 if (volverAlMenu) {
-                    game.setScreen(new MenuPrincipal(game, loginManager));
+                    game.setScreen(new MenuNiveles(game, loginManager));
                 } else {
                     game.setScreen(new Nivel5(game, loginManager, numeroNivel));
                 }

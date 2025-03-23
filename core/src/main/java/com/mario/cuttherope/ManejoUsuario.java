@@ -5,6 +5,7 @@
 package com.mario.cuttherope;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.files.FileHandle;
 
 import java.io.DataInputStream;
@@ -15,8 +16,12 @@ import java.util.Date;
 public class ManejoUsuario {
 
     private PerfilUsuario perfilUsuarioActual;
+    private int nivelDesbloqueado = 1;
+    private Preferences preferences;
 
     public ManejoUsuario() {
+        preferences = Gdx.app.getPreferences("Cut The Rope");
+        cargarProgreso();
     }
 
     public boolean hayJugadorLogueado() {
@@ -75,17 +80,44 @@ public class ManejoUsuario {
         }
         return null;
     }
-    
-    public boolean actualizarPerfil(PerfilUsuario perfil) {
-    FileHandle folder = Gdx.files.local("usuario/" + perfil.getApodo());
-    folder.mkdirs();
-    FileHandle datosBin = folder.child("datos.bin");
-    return saveUserData(datosBin, perfil);
-}
-    
-    
 
+    public boolean actualizarPerfil(PerfilUsuario perfil) {
+        FileHandle folder = Gdx.files.local("usuario/" + perfil.getApodo());
+        folder.mkdirs();
+        FileHandle datosBin = folder.child("datos.bin");
+        return saveUserData(datosBin, perfil);
+    }
+
+    public int getNivelDesbloqueado() {
+        return nivelDesbloqueado;
+    }
     
+    public void desbloquearSiguienteNivel() {
+    nivelDesbloqueado++;
+}
+
+    public void setNivelDesbloqueado(int nivel) {
+        // Only increase level if the new one is higher
+        if (nivel > nivelDesbloqueado) {
+            nivelDesbloqueado = nivel;
+            // Save progress to preferences/database
+            guardarProgreso();
+        }
+
+    }
+    private void cargarProgreso() {
+    // Load from preferences
+    if (preferences.contains("nivelDesbloqueado")) {
+        nivelDesbloqueado = preferences.getInteger("nivelDesbloqueado");
+    }
+}
+
+    private void guardarProgreso() {
+        // Save to preferences
+        preferences.putInteger("nivelDesbloqueado", nivelDesbloqueado);
+        preferences.flush();
+    }
+
     public boolean saveUserData(FileHandle file, PerfilUsuario p) {
         try (DataOutputStream dos = new DataOutputStream(file.write(false))) {
             dos.writeUTF(p.getApodo());

@@ -205,10 +205,14 @@ public class Nivel1 implements Screen, InputProcessor {
     }
 
     private void mostrarDialogoFelicidades() {
+        ManejoUsuario manejousuario= new ManejoUsuario();
+        
+        manejousuario.desbloquearSiguienteNivel();
+        
         Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
-                game.setScreen(new MenuPrincipal(game, loginManager));
+                game.setScreen(new MenuNiveles(game, loginManager));
             }
         };
         dialog.text(idioma.get("dialog.felicidadesTexto"));
