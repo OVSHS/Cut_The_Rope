@@ -148,7 +148,7 @@ public class Nivel4 implements Screen, InputProcessor {
         textButtonStyle.down = drawable;
         textButtonStyle.font = new BitmapFont();
 
-        TextButton botonMapa = new TextButton("Mapa", textButtonStyle);
+       TextButton botonMapa = new TextButton(idioma.get("btn.mapa"), textButtonStyle);
         botonMapa.setSize(100, 50);
         botonMapa.setPosition(10, 10);
         botonMapa.addListener(new ClickListener() {
@@ -305,14 +305,14 @@ public class Nivel4 implements Screen, InputProcessor {
             protected void result(Object object) {
                 boolean volverAlMenu = (boolean) object;
                 if (volverAlMenu) {
-                    game.setScreen(new MenuPrincipal(game, loginManager));
+                    game.setScreen(new MenuNiveles(game, loginManager));
                 } else {
                     game.setScreen(new Nivel4(game, loginManager, numeroNivel));
                 }
             }
         };
         dialog.text(idioma.get("dialog.nivelTerminadoTexto"));
-        dialog.button(idioma.get("btn.volverAlMenu"), true);
+        dialog.button(idioma.get("btn.volverAlMapa"), true);
         dialog.button(idioma.get("btn.repetirNivel"), false);
         dialog.show(stage);
     }

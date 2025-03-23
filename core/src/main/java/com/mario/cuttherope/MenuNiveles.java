@@ -33,6 +33,7 @@ public class MenuNiveles implements Screen {
     private Texture[] frames;
     private int currentFrame = 0;
     private float timeElapsed = 0;
+     private Idiomas idioma;
 
     // Texturas
     private Texture levelButtonTexture;
@@ -73,6 +74,7 @@ public class MenuNiveles implements Screen {
 
     @Override
     public void show() {
+         idioma = Idiomas.getInstance();
         batch = new SpriteBatch();
         stage = new Stage(new ScreenViewport());
 
@@ -176,7 +178,7 @@ public class MenuNiveles implements Screen {
         backButtonStyle.font = titleFont; // Usar fuente existente
         backButtonStyle.fontColor = Color.WHITE; // Color del texto
 
-        TextButton backButton = new TextButton("GO BACK", backButtonStyle);
+        TextButton backButton = new TextButton(idioma.get("btn.regresar"), backButtonStyle);
 
         backButton.addListener(new ClickListener() {
             public void enter(InputEvent event, float x, float y, int pointer, int button) {
@@ -218,7 +220,7 @@ public class MenuNiveles implements Screen {
         // Launch the appropriate level based on the level number
         switch (levelNum) {
             case 1:
-                game.setScreen(new Nivel5(game, loginManager, 1));
+                game.setScreen(new Nivel1(game, loginManager, 1));
                 break;
             case 2:
                 game.setScreen(new Nivel2(game, loginManager, 2));

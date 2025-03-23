@@ -64,6 +64,7 @@ public class Nivel5 implements Screen, InputProcessor {
 
     private final float ANCHO_MUNDO = 20f;
     private final float ALTO_MUNDO = 30f;
+     private Idiomas idioma;
 
     private Box2DDebugRenderer debugRenderer;
 
@@ -90,6 +91,7 @@ public class Nivel5 implements Screen, InputProcessor {
 
     @Override
     public void show() {
+        idioma = Idiomas.getInstance();
         mundo = new World(new Vector2(0, -9.8f), true);
         debugRenderer = new Box2DDebugRenderer();
 
@@ -225,7 +227,7 @@ public class Nivel5 implements Screen, InputProcessor {
         textButtonStyle.down = drawable;
         textButtonStyle.font = new BitmapFont();
 
-        TextButton botonMapa = new TextButton("Mapa", textButtonStyle);
+       TextButton botonMapa = new TextButton(idioma.get("btn.mapa"), textButtonStyle);
         botonMapa.setSize(100, 50);
         botonMapa.setPosition(10, 10);
         botonMapa.addListener(new ClickListener() {
@@ -446,21 +448,21 @@ public class Nivel5 implements Screen, InputProcessor {
         return new StarObject(p, body);
     }
 
-    private void mostrarDialogoFelicidades() {
-        Dialog dialog = new Dialog("Felicidades", new Skin(Gdx.files.internal("uiskin.json"))) {
+     private void mostrarDialogoFelicidades() {
+        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
-                game.setScreen(new MenuNiveles(game, loginManager));
+                game.setScreen(new MenuPrincipal(game, loginManager));
             }
         };
-        dialog.text("El dulce llego a la boca de OmNom.");
-        dialog.button("Aceptar", true);
+        dialog.text(idioma.get("dialog.felicidadesTexto"));
+        dialog.button(idioma.get("btn.aceptar"), true);
         dialog.show(stage);
     }
 
     private void mostrarDialogoFallo() {
 
-        Dialog dialog = new Dialog("Nivel Terminado", new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 boolean volverAlMenu = (boolean) object;
@@ -471,9 +473,9 @@ public class Nivel5 implements Screen, InputProcessor {
                 }
             }
         };
-        dialog.text("El dulce se cayo. ¿Deseas repetir el nivel o volver al menu?");
-        dialog.button("Volver al menu", true);
-        dialog.button("Repetir nivel", false);
+        dialog.text(idioma.get("dialog.nivelTerminadoTexto"));
+        dialog.button(idioma.get("btn.volverAlMapa"), true);
+        dialog.button(idioma.get("btn.repetirNivel"), false);
         dialog.show(stage);
     }
 

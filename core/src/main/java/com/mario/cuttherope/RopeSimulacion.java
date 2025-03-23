@@ -13,8 +13,11 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Joint;
 import com.badlogic.gdx.physics.box2d.World;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /*
   Clase que maneja la lógica de las cuerdas, el dulce y las estrellas, asi como
@@ -84,12 +87,12 @@ public class RopeSimulacion {
         totalStars = (estrellas != null) ? estrellas.size() : 0;
 
     }
-    
-    public void actualizarCuerdas(List<Cuerda> cuerdas) {
-    this.listaCuerdas = cuerdas;
-}
 
-    public void actualizar(float delta) {
+    public void actualizarCuerdas(List<Cuerda> cuerdas) {
+        this.listaCuerdas = cuerdas;
+    }
+
+    public void actualizar(final float delta) {
         if (cuerpoOmNom == null) {
             return;
         }
@@ -105,18 +108,36 @@ public class RopeSimulacion {
                 spriteOmNom.setTexture(texturaOmNomCerrado);
             }
         }
-        if (cuerpoDulce != null && listaEstrellas != null && !listaEstrellas.isEmpty()) {
-            Iterator<StarObject> it = listaEstrellas.iterator();
-            while (it.hasNext()) {
-                StarObject estrella = it.next();
-                float distEstrella = cuerpoDulce.getPosition().dst(estrella.body.getPosition());
-                if (distEstrella < distanciaEstrella) {
 
-                    mundo.destroyBody(estrella.body);
-                    it.remove();
-                    estrellasRecogidas++;
+        // Verifica la recoleccion de estrellas en un hilo separado
+        if (cuerpoDulce != null && listaEstrellas != null && !listaEstrellas.isEmpty()) {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    final ArrayList<StarObject> estrellasAEliminar = new ArrayList<>();
+                    for (StarObject estrella : listaEstrellas) {
+                        float distEstrella = cuerpoDulce.getPosition().dst(estrella.body.getPosition());
+                        if (distEstrella < distanciaEstrella) {
+                            estrellasAEliminar.add(estrella);
+                        }
+                    }
+                    if (!estrellasAEliminar.isEmpty()) {
+                        // Publicar la eliminacion de estrellas en el hilo principal
+                        Gdx.app.postRunnable(new Runnable() {
+                            @Override
+                            public void run() {
+                                for (StarObject estrella : estrellasAEliminar) {
+                                    mundo.destroyBody(estrella.body);
+                                    listaEstrellas.remove(estrella);
+                                    estrellasRecogidas++;
+                                }
+                            }
+                        });
+                    }
                 }
-            }
+            });
+            executor.shutdown();
         }
     }
 
@@ -160,6 +181,7 @@ public class RopeSimulacion {
             }
         }
     }
+
     public void intentarCortarCuerda(Vector2 posicionMouse) {
         if (listaCuerdas == null || listaCuerdas.isEmpty()) {
             return;
