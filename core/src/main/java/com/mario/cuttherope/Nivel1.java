@@ -11,7 +11,7 @@ package com.mario.cuttherope;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.Screen;
+
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -32,7 +32,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import java.util.ArrayList;
 
-public class Nivel1 implements Screen, InputProcessor {
+public class Nivel1 extends Juego implements InputProcessor {
 
     private Stage stage;
     private ManejoUsuario loginManager;
@@ -54,14 +54,16 @@ public class Nivel1 implements Screen, InputProcessor {
     private final float ALTO_MUNDO = 30f;
     private Idiomas idioma;
 
-    public Nivel1(MainGame game, ManejoUsuario loginManager, int nivel) {
-        this.game = game;
+    public Nivel1(MainGame mainGame, ManejoUsuario loginManager, int nivel) {
+        super(mainGame, loginManager);
+        this.game = mainGame;
         this.loginManager = loginManager;
         this.numeroNivel = nivel;
     }
 
     @Override
     public void show() {
+        super.show();
         idioma = Idiomas.getInstance();
         mundo = new World(new Vector2(0, -9.8f), true);
         debugRenderer = new Box2DDebugRenderer();
@@ -73,16 +75,23 @@ public class Nivel1 implements Screen, InputProcessor {
         hudCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         hudCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batchJuego = new SpriteBatch();
+
         cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO / 2f, 3f));
         cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 5f));
+
+        // Se crea un único anclaje para la cuerda en este nivel
         Body anclaje = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 2f));
         Cuerda cuerda = new Cuerda(anclaje, cuerpoDulce, mundo);
         listaCuerdas.add(cuerda);
+
+        // Se crean las estrellas en posiciones definidas
         listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, 15f)));
         listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, 10f)));
         listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, 6f)));
+
         ropeSimulacion = new RopeSimulacion(game, loginManager, numeroNivel, mundo);
         ropeSimulacion.inicializarElementos(cuerpoOmNom, cuerpoDulce, listaEstrellas, listaCuerdas, mundo);
+
         mundo.setContactListener(new ContactListener() {
             @Override
             public void beginContact(Contact contact) {
@@ -107,16 +116,13 @@ public class Nivel1 implements Screen, InputProcessor {
             }
 
             @Override
-            public void endContact(Contact contact) {
-            }
+            public void endContact(Contact contact) { }
 
             @Override
-            public void preSolve(Contact contact, Manifold oldManifold) {
-            }
+            public void preSolve(Contact contact, Manifold oldManifold) { }
 
             @Override
-            public void postSolve(Contact contact, ContactImpulse impulse) {
-            }
+            public void postSolve(Contact contact, ContactImpulse impulse) { }
         });
 
         Texture backButtonTexture = new Texture("back_button.png");
@@ -126,7 +132,7 @@ public class Nivel1 implements Screen, InputProcessor {
         textButtonStyle.down = drawable;
         textButtonStyle.font = new BitmapFont();
 
-       TextButton botonMapa = new TextButton(idioma.get("btn.mapa"), textButtonStyle);
+        TextButton botonMapa = new TextButton(idioma.get("btn.mapa"), textButtonStyle);
         botonMapa.setSize(100, 50);
         botonMapa.setPosition(10, 10);
         botonMapa.addListener(new ClickListener() {
@@ -136,6 +142,7 @@ public class Nivel1 implements Screen, InputProcessor {
             }
         });
         stage.addActor(botonMapa);
+
         InputMultiplexer multiplexer = new InputMultiplexer(stage, this);
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -240,10 +247,10 @@ public class Nivel1 implements Screen, InputProcessor {
 
     private void mostrarDialogoFelicidades() {
         ManejoUsuario manejousuario = new ManejoUsuario();
-
         manejousuario.desbloquearSiguienteNivel();
 
-        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"), 
+                new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 game.setScreen(new MenuNiveles(game, loginManager));
@@ -255,7 +262,8 @@ public class Nivel1 implements Screen, InputProcessor {
     }
 
     private void mostrarDialogoFallo() {
-        Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"), 
+                new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 boolean volverAlMenu = (boolean) object;
@@ -281,39 +289,25 @@ public class Nivel1 implements Screen, InputProcessor {
     }
 
     @Override
-    public boolean keyDown(int keycode) {
-        return false;
-    }
+    public boolean keyDown(int keycode) { return false; }
 
     @Override
-    public boolean keyUp(int keycode) {
-        return false;
-    }
+    public boolean keyUp(int keycode) { return false; }
 
     @Override
-    public boolean keyTyped(char character) {
-        return false;
-    }
+    public boolean keyTyped(char character) { return false; }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) { return false; }
 
     @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) { return false; }
 
     @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-        return false;
-    }
+    public boolean mouseMoved(int screenX, int screenY) { return false; }
 
     @Override
-    public boolean scrolled(float amountX, float amountY) {
-        return false;
-    }
+    public boolean scrolled(float amountX, float amountY) { return false; }
 
     @Override
     public void resize(int width, int height) {
@@ -321,12 +315,10 @@ public class Nivel1 implements Screen, InputProcessor {
     }
 
     @Override
-    public void pause() {
-    }
+    public void pause() { }
 
     @Override
-    public void resume() {
-    }
+    public void resume() { }
 
     @Override
     public void hide() {
@@ -336,25 +328,13 @@ public class Nivel1 implements Screen, InputProcessor {
     @Override
     public void dispose() {
         shapeRenderer.dispose();
-        if (stage != null) {
-            stage.dispose();
-        }
-        if (ropeSimulacion != null) {
-            ropeSimulacion.dispose();
-        }
-        if (mundo != null) {
-            mundo.dispose();
-        }
-        if (batchJuego != null) {
-            batchJuego.dispose();
-        }
-        if (debugRenderer != null) {
-            debugRenderer.dispose();
-        }
+        if (stage != null) { stage.dispose(); }
+        if (ropeSimulacion != null) { ropeSimulacion.dispose(); }
+        if (mundo != null) { mundo.dispose(); }
+        if (batchJuego != null) { batchJuego.dispose(); }
+        if (debugRenderer != null) { debugRenderer.dispose(); }
     }
 
     @Override
-    public boolean touchCancelled(int i, int i1, int i2, int i3) {
-        return false;
-    }
+    public boolean touchCancelled(int screenX, int screenY, int pointer, int button) { return false; }
 }

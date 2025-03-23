@@ -32,7 +32,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import java.util.ArrayList;
 
-public class Nivel3 implements Screen, InputProcessor {
+public class Nivel3 extends Juego implements InputProcessor {
 
     private Stage stage;
     private ManejoUsuario loginManager;
@@ -50,20 +50,21 @@ public class Nivel3 implements Screen, InputProcessor {
     private ArrayList<StarObject> listaEstrellas = new ArrayList<>();
     private RopeSimulacion ropeSimulacion;
     private Idiomas idioma;
-
     private Box2DDebugRenderer debugRenderer;
 
     private final float ANCHO_MUNDO = 20f;
     private final float ALTO_MUNDO = 30f;
 
-    public Nivel3(MainGame game, ManejoUsuario loginManager, int nivel) {
-        this.game = game;
+    public Nivel3(MainGame mainGame, ManejoUsuario loginManager, int nivel) {
+        super(mainGame, loginManager);
+        this.game = mainGame;
         this.loginManager = loginManager;
         this.numeroNivel = nivel;
     }
 
     @Override
     public void show() {
+        super.show();
         idioma = Idiomas.getInstance();
         mundo = new World(new Vector2(0, -9.8f), true);
         debugRenderer = new Box2DDebugRenderer();
@@ -78,16 +79,17 @@ public class Nivel3 implements Screen, InputProcessor {
 
         batchJuego = new SpriteBatch();
 
+        // Configuración de cuerpos
         cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO / 2f + 3f, 3f));
-
         cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO / 2f));
 
+        // Crear 4 anclajes para las cuerdas
         Body anclajeArriba = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f, (ALTO_MUNDO / 2f) + 5f));
         Body anclajeAbajo = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f, (ALTO_MUNDO / 2f) - 5f));
         Body anclajeIzquierda = crearAnclaje(new Vector2((ANCHO_MUNDO / 2f) - 5f, ALTO_MUNDO / 2f));
         Body anclajeDerecha = crearAnclaje(new Vector2((ANCHO_MUNDO / 2f) + 5f, ALTO_MUNDO / 2f));
 
-        // Crear 4 cuerdas
+        // Crear 4 cuerdas y ajustar su longitud
         Cuerda cuerdaArriba = new Cuerda(anclajeArriba, cuerpoDulce, mundo);
         Cuerda cuerdaAbajo = new Cuerda(anclajeAbajo, cuerpoDulce, mundo);
         Cuerda cuerdaIzquierda = new Cuerda(anclajeIzquierda, cuerpoDulce, mundo);
@@ -98,13 +100,12 @@ public class Nivel3 implements Screen, InputProcessor {
         cuerdaIzquierda.setLongitud(2f);
         cuerdaDerecha.setLongitud(2f);
 
-        // Añadimos las cuerdas a la lista
         listaCuerdas.add(cuerdaArriba);
         listaCuerdas.add(cuerdaAbajo);
         listaCuerdas.add(cuerdaIzquierda);
         listaCuerdas.add(cuerdaDerecha);
 
-        // Crear estrellas
+        // Crear estrellas en posiciones definidas
         listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, (ALTO_MUNDO / 2f) - 2f)));
         listaEstrellas.add(crearEstrella(new Vector2((ANCHO_MUNDO / 2f) - 2f, (ALTO_MUNDO / 2f) - 2f)));
         listaEstrellas.add(crearEstrella(new Vector2((ANCHO_MUNDO / 2f) + 3f, (ALTO_MUNDO / 2f) - 7f)));
@@ -118,7 +119,6 @@ public class Nivel3 implements Screen, InputProcessor {
             public void beginContact(Contact contact) {
                 Body bodyA = contact.getFixtureA().getBody();
                 Body bodyB = contact.getFixtureB().getBody();
-
                 if ((bodyA.getUserData() != null && bodyA.getUserData().equals("dulce")
                         && bodyB.getUserData() != null && bodyB.getUserData().equals("omnom"))
                         || (bodyB.getUserData() != null && bodyB.getUserData().equals("dulce")
@@ -139,26 +139,23 @@ public class Nivel3 implements Screen, InputProcessor {
             }
 
             @Override
-            public void endContact(Contact contact) {
-            }
+            public void endContact(Contact contact) { }
 
             @Override
-            public void preSolve(Contact contact, Manifold oldManifold) {
-            }
+            public void preSolve(Contact contact, Manifold oldManifold) { }
 
             @Override
-            public void postSolve(Contact contact, ContactImpulse impulse) {
-            }
+            public void postSolve(Contact contact, ContactImpulse impulse) { }
         });
-        
-         Texture backButtonTexture = new Texture("back_button.png");
+
+        Texture backButtonTexture = new Texture("back_button.png");
         TextureRegionDrawable drawable = new TextureRegionDrawable(new TextureRegion(backButtonTexture));
         TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
         textButtonStyle.up = drawable;
         textButtonStyle.down = drawable;
         textButtonStyle.font = new BitmapFont();
 
-      TextButton botonMapa = new TextButton(idioma.get("btn.mapa"), textButtonStyle);
+        TextButton botonMapa = new TextButton(idioma.get("btn.mapa"), textButtonStyle);
         botonMapa.setSize(100, 50);
         botonMapa.setPosition(10, 10);
         botonMapa.addListener(new ClickListener() {
@@ -171,13 +168,11 @@ public class Nivel3 implements Screen, InputProcessor {
 
         InputMultiplexer multiplexer = new InputMultiplexer(stage, this);
         Gdx.input.setInputProcessor(multiplexer);
-
     }
 
     @Override
     public void render(float delta) {
         mundo.step(delta, 6, 2);
-
         Gdx.gl.glClearColor(0.76f, 0.67f, 0.5f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -279,7 +274,8 @@ public class Nivel3 implements Screen, InputProcessor {
     }
 
     private void mostrarDialogoFelicidades() {
-        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"),
+                new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 game.setScreen(new MenuPrincipal(game, loginManager));
@@ -291,8 +287,8 @@ public class Nivel3 implements Screen, InputProcessor {
     }
 
     private void mostrarDialogoFallo() {
-
-        Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"),
+                new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 boolean volverAlMenu = (boolean) object;
@@ -310,6 +306,51 @@ public class Nivel3 implements Screen, InputProcessor {
     }
 
     @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        Vector3 tmp = new Vector3(screenX, screenY, 0);
+        camara.unproject(tmp);
+        ropeSimulacion.intentarCortarCuerda(new Vector2(tmp.x, tmp.y));
+        return true;
+    }
+
+    @Override
+    public boolean keyDown(int keycode) { return false; }
+
+    @Override
+    public boolean keyUp(int keycode) { return false; }
+
+    @Override
+    public boolean keyTyped(char character) { return false; }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) { return false; }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) { return false; }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) { return false; }
+
+    @Override
+    public boolean scrolled(float amountX, float amountY) { return false; }
+
+    @Override
+    public void resize(int width, int height) {
+        stage.getViewport().update(width, height, true);
+    }
+
+    @Override
+    public void pause() { }
+
+    @Override
+    public void resume() { }
+
+    @Override
+    public void hide() {
+        dispose();
+    }
+
+    @Override
     public void dispose() {
         shapeRenderer.dispose();
         stage.dispose();
@@ -320,71 +361,7 @@ public class Nivel3 implements Screen, InputProcessor {
     }
 
     @Override
-    public void resize(int width, int height) {
-        stage.getViewport().update(width, height, true);
-    }
-
-    @Override
-    public void pause() {
-
-    }
-
-    @Override
-    public void resume() {
-
-    }
-
-    @Override
-    public void hide() {
-        dispose();
-    }
-
-    @Override
-    public boolean keyDown(int keycode) {
-        return false;
-    }
-
-    @Override
-    public boolean keyUp(int keycode) {
-        return false;
-    }
-
-    @Override
-    public boolean keyTyped(char character) {
-        return false;
-    }
-
-    @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    @Override
     public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
         return false;
     }
-
-    @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-        Vector3 tmp = new Vector3(screenX, screenY, 0);
-        camara.unproject(tmp);
-        ropeSimulacion.intentarCortarCuerda(new Vector2(tmp.x, tmp.y));
-        return true;
-    }
-
-    @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-        return false;
-    }
-
-    @Override
-    public boolean scrolled(float amountX, float amountY) {
-        return false;
-    }
-
 }

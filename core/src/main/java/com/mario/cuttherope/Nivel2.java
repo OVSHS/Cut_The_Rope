@@ -29,7 +29,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import java.util.ArrayList;
 
-public class Nivel2 implements Screen, InputProcessor {
+public class Nivel2 extends Juego implements InputProcessor {
 
     private Stage stage;
     private ManejoUsuario loginManager;
@@ -47,24 +47,24 @@ public class Nivel2 implements Screen, InputProcessor {
     private ArrayList<StarObject> listaEstrellas = new ArrayList<>();
     private RopeSimulacion ropeSimulacion;
     private Idiomas idioma;
-
     private Box2DDebugRenderer debugRenderer;
-
     private final float ANCHO_MUNDO = 20f;
     private final float ALTO_MUNDO = 30f;
 
-    public Nivel2(MainGame game, ManejoUsuario loginManager, int nivel) {
-        this.game = game;
+    public Nivel2(MainGame mainGame, ManejoUsuario loginManager, int nivel) {
+        super(mainGame, loginManager);
+        this.game = mainGame;
         this.loginManager = loginManager;
         this.numeroNivel = nivel;
     }
 
     @Override
     public void show() {
+        // Llama al show() de la clase abstracta Juego para iniciar el hilo de eventos, etc.
+        super.show();
         idioma = Idiomas.getInstance();
         mundo = new World(new Vector2(0, -9.8f), true);
         debugRenderer = new Box2DDebugRenderer();
-
         shapeRenderer = new ShapeRenderer();
         stage = new Stage(new ScreenViewport());
         camara = new OrthographicCamera(ANCHO_MUNDO, ALTO_MUNDO);
@@ -72,7 +72,6 @@ public class Nivel2 implements Screen, InputProcessor {
         camara.update();
         hudCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         hudCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
         batchJuego = new SpriteBatch();
 
         cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO / 2f, 3f));
@@ -88,7 +87,6 @@ public class Nivel2 implements Screen, InputProcessor {
         Cuerda cuerda3 = new Cuerda(anclaje3, cuerpoDulce, mundo);
         cuerda1.setLongitud(5f);
         cuerda2.setLongitud(8f);
-
         listaCuerdas.add(cuerda1);
         listaCuerdas.add(cuerda2);
         listaCuerdas.add(cuerda3);
@@ -115,14 +113,11 @@ public class Nivel2 implements Screen, InputProcessor {
                     if (!juegoTerminado) {
                         juegoTerminado = true;
                         Gdx.app.postRunnable(() -> {
-
                             if (cuerpoDulce != null) {
                                 mundo.destroyBody(cuerpoDulce);
                                 cuerpoDulce = null;
                             }
-
                             ropeSimulacion.setDulceComido(true);
-
                             mostrarDialogoFelicidades();
                         });
                     }
@@ -141,8 +136,8 @@ public class Nivel2 implements Screen, InputProcessor {
             public void postSolve(Contact contact, ContactImpulse impulse) {
             }
         });
-        
-         Texture backButtonTexture = new Texture("back_button.png");
+
+        Texture backButtonTexture = new Texture("back_button.png");
         TextureRegionDrawable drawable = new TextureRegionDrawable(new TextureRegion(backButtonTexture));
         TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
         textButtonStyle.up = drawable;
@@ -162,25 +157,19 @@ public class Nivel2 implements Screen, InputProcessor {
 
         InputMultiplexer multiplexer = new InputMultiplexer(stage, this);
         Gdx.input.setInputProcessor(multiplexer);
-
     }
 
     @Override
     public void render(float delta) {
         mundo.step(delta, 6, 2);
-
         Gdx.gl.glClearColor(0.76f, 0.67f, 0.5f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
         debugRenderer.setDrawBodies(false);
         debugRenderer.render(mundo, camara.combined);
         debugRenderer.setDrawBodies(true);
-
         stage.act(delta);
         stage.draw();
-
         ropeSimulacion.actualizar(delta);
-
         batchJuego.setProjectionMatrix(camara.combined);
         batchJuego.begin();
         ropeSimulacion.render(batchJuego);
@@ -198,7 +187,6 @@ public class Nivel2 implements Screen, InputProcessor {
         } catch (Exception e) {
             Gdx.app.error("error", "Error al renderizar HUD", e);
         }
-
         if (!juegoTerminado && cuerpoDulce.getPosition().y < -5) {
             juegoTerminado = true;
             mostrarDialogoFallo();
@@ -282,7 +270,6 @@ public class Nivel2 implements Screen, InputProcessor {
     }
 
     private void mostrarDialogoFallo() {
-
         Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
@@ -316,14 +303,10 @@ public class Nivel2 implements Screen, InputProcessor {
     }
 
     @Override
-    public void pause() {
-
-    }
+    public void pause() { }
 
     @Override
-    public void resume() {
-
-    }
+    public void resume() { }
 
     @Override
     public void hide() {
@@ -331,34 +314,22 @@ public class Nivel2 implements Screen, InputProcessor {
     }
 
     @Override
-    public boolean keyDown(int keycode) {
-        return false;
-    }
+    public boolean keyDown(int keycode) { return false; }
 
     @Override
-    public boolean keyUp(int keycode) {
-        return false;
-    }
+    public boolean keyUp(int keycode) { return false; }
 
     @Override
-    public boolean keyTyped(char character) {
-        return false;
-    }
+    public boolean keyTyped(char character) { return false; }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) { return false; }
 
     @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) { return false; }
 
     @Override
-    public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
+    public boolean touchCancelled(int screenX, int screenY, int pointer, int button) { return false; }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
@@ -369,13 +340,8 @@ public class Nivel2 implements Screen, InputProcessor {
     }
 
     @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-        return false;
-    }
+    public boolean mouseMoved(int screenX, int screenY) { return false; }
 
     @Override
-    public boolean scrolled(float amountX, float amountY) {
-        return false;
-    }
-
+    public boolean scrolled(float amountX, float amountY) { return false; }
 }
