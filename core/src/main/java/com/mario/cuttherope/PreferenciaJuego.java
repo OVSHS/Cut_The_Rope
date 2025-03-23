@@ -12,6 +12,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -27,6 +28,7 @@ import java.util.Locale;
 public class PreferenciaJuego implements Screen {
 
     private MainGame game;
+    private SpriteBatch batch;
     private ManejoUsuario manejoUsuario;
     private Stage stage;
     private Skin skin;
@@ -59,7 +61,8 @@ public class PreferenciaJuego implements Screen {
     public PreferenciaJuego(MainGame game, ManejoUsuario manejoUsuario) {
         this.game = game;
         this.manejoUsuario = manejoUsuario;
-        
+
+        batch = new SpriteBatch();
         loadFrames();
 
         stage = new Stage(new ScreenViewport());
@@ -158,8 +161,22 @@ public class PreferenciaJuego implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
+        float time = Gdx.graphics.getFrameId() % 300 / 300f;
+        float r = 0.76f + 0.04f * (float) Math.sin(time * 6.28f);
+        float g = 0.67f + 0.04f * (float) Math.cos(time * 6.28f);
+        float b = 0.5f;
+        Gdx.gl.glClearColor(r, g, b, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        timeElapsed += delta;
+        if (timeElapsed > 0.225f) { // Change frame every 0.1 sec
+            currentFrame = (currentFrame + 1) % frames.length;
+            timeElapsed = 0;
+        }
+        batch.begin();
+        batch.draw(frames[currentFrame], 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        batch.end();
+
         stage.act(delta);
         stage.draw();
     }
@@ -183,6 +200,11 @@ public class PreferenciaJuego implements Screen {
 
     @Override
     public void dispose() {
+        for (Texture frame : frames) {
+            frame.dispose();
+        }
+        batch.dispose();
+        stage.dispose();
         stage.dispose();
         skin.dispose();
     }
