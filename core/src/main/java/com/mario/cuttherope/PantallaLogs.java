@@ -49,8 +49,8 @@ public class PantallaLogs implements Screen {
 
     }
 
-    public PantallaLogs(MainGame game,ManejoUsuario loginManager) {
-        this.game=game;
+    public PantallaLogs(MainGame game, ManejoUsuario loginManager) {
+        this.game = game;
         this.loginManager = loginManager;
         this.stage = new Stage(new ScreenViewport());
     }
@@ -64,6 +64,7 @@ public class PantallaLogs implements Screen {
         table.setFillParent(true);
         table.defaults().pad(10);
 
+        batch = new SpriteBatch();
         loadFrames();
         Label.LabelStyle titleStyle = new Label.LabelStyle(new BitmapFont(), Color.WHITE);
 
@@ -106,6 +107,14 @@ public class PantallaLogs implements Screen {
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        timeElapsed += delta;
+        if (timeElapsed > 0.225f) { // Change frame every 0.1 sec
+            currentFrame = (currentFrame + 1) % frames.length;
+            timeElapsed = 0;
+        }
+        batch.begin();
+        batch.draw(frames[currentFrame], 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        batch.end();
 
         stage.act(delta);
         stage.draw();
@@ -130,6 +139,10 @@ public class PantallaLogs implements Screen {
 
     @Override
     public void dispose() {
+        for (Texture frame : frames) {
+            frame.dispose();
+        }
+        batch.dispose();
         stage.dispose();
     }
 }
