@@ -8,6 +8,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -51,7 +52,7 @@ public class RopeSimulacion {
     private Texture texturaEstrellaFull;
     private int estrellasRecogidas = 0;
     private int totalStars = 0;
-    private ArrayList<Body> spikes;
+
 
     public RopeSimulacion(MainGame game, ManejoUsuario loginManager, int nivel, World mundo) {
         this.game = game;
@@ -91,10 +92,6 @@ public class RopeSimulacion {
 
     public void actualizarCuerdas(List<Cuerda> cuerdas) {
         this.listaCuerdas = cuerdas;
-    }
-
-    public void setSpikes(ArrayList<Body> spikes) {
-        this.spikes = spikes;
     }
 
     public void actualizar(final float delta) {

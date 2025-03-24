@@ -60,6 +60,7 @@ public class Nivel5 extends Juego implements InputProcessor {
     private long tiempoInicioNivel;
     private long tiempoJugadoNivel;
     private boolean nivelCompletado = false;
+    private Texture spikeTexture;
 
     private final float ANCHO_MUNDO = 20f;
     private final float ALTO_MUNDO = 30f;
@@ -91,48 +92,52 @@ public class Nivel5 extends Juego implements InputProcessor {
 
         // Creación de cuerpos
         cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO / 2f, 4f)); // Om Nom en la parte inferior
-        cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 10f)); // Caramelo en la parte superior
+        cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 10f));
 
-        // Crear anclajes y cuerdas en forma de estrella alrededor del caramelo (como en la imagen)
-        // Se crean 3 anclajes formando un triángulo alrededor del caramelo
-        Body anclajeIzquierda = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f - 3f, ALTO_MUNDO - 10f));
-        Body anclajeDerecha = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f + 3f, ALTO_MUNDO - 10f));
-        Body anclajeSuperior = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 7f));
+        Body anclajemedio = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f -2f, 19f));
+        Body anclajeabajo = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f -2f, 12f));
+        Body anclajearriba = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f -2f, 24f));
+        Body anclajederecha = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f+4f ,24f));
+        
 
-        Cuerda cuerdaIzquierda = new Cuerda(anclajeIzquierda, cuerpoDulce, mundo);
-        Cuerda cuerdaDerecha = new Cuerda(anclajeDerecha, cuerpoDulce, mundo);
-        Cuerda cuerdaSuperior = new Cuerda(anclajeSuperior, cuerpoDulce, mundo);
+        Cuerda cuerdamedio = new Cuerda(anclajemedio, cuerpoDulce, mundo);
+        Cuerda cuerdaabajo = new Cuerda(anclajeabajo, cuerpoDulce, mundo);
+        Cuerda cuerdaarriba = new Cuerda(anclajearriba, cuerpoDulce, mundo);
+        Cuerda cuerdaderecha = new Cuerda(anclajederecha, cuerpoDulce, mundo);
+        
 
-        cuerdaIzquierda.setLongitud(3f);
-        cuerdaDerecha.setLongitud(3f);
-        cuerdaSuperior.setLongitud(3f);
+        cuerdamedio.setLongitud(6f);
+        cuerdaabajo.setLongitud(5.5f);
+        cuerdaarriba.setLongitud(5f);
+        cuerdaderecha.setLongitud(1.8f);
 
-        listaCuerdas.add(cuerdaIzquierda);
-        listaCuerdas.add(cuerdaDerecha);
-        listaCuerdas.add(cuerdaSuperior);
+        listaCuerdas.add(cuerdamedio);
+        listaCuerdas.add(cuerdaabajo);
+        listaCuerdas.add(cuerdaarriba);
+        listaCuerdas.add(cuerdaderecha);
 
         // Crear estrellas (posicionadas como en la imagen)
-        listaEstrellas.add(crearEstrella(new Vector2(5f, 15f))); // Estrella izquierda
-        listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, 13f))); // Estrella centro
-        listaEstrellas.add(crearEstrella(new Vector2(15f, 15f))); // Estrella derecha
+        listaEstrellas.add(crearEstrella(new Vector2(12f, 12f))); // Estrella izquierda
+        listaEstrellas.add(crearEstrella(new Vector2(5f, 12f))); // Estrella derecha
+        listaEstrellas.add(crearEstrella(new Vector2(5f, 18f))); // Estrella derecha
 
         // Crear spikes (como se ve en la imagen)
         // Primera fila de spikes
-        for (int i = 0; i < 5; i++) {
-            Body spike = crearSpike(new Vector2(6f + i * 1.5f, 12f));
+        for (int i = 0; i < 2; i++) {
+            Body spike = crearSpike(new Vector2(8f + i *2f, 15f));
             listaSpikes.add(spike);
         }
-        
+
         // Segunda fila de spikes
-        for (int i = 0; i < 5; i++) {
-            Body spike = crearSpike(new Vector2(6f + i * 1.5f, 8f));
+        for (int i = 0; i < 2; i++) {
+            Body spike = crearSpike(new Vector2(8f + i * 2f,8f));
             listaSpikes.add(spike);
         }
 
         // Inicializar la simulación de cuerdas
         ropeSimulacion = new RopeSimulacion(game, loginManager, numeroNivel, mundo);
         ropeSimulacion.inicializarElementos(cuerpoOmNom, cuerpoDulce, listaEstrellas, listaCuerdas, mundo);
-        ropeSimulacion.setSpikes(listaSpikes); // Pasamos la lista de spikes a la simulación
+        spikeTexture = new Texture(Gdx.files.internal("spikes.png"));
 
         juegoTerminado = false;
         mundo.setContactListener(new ContactListener() {
@@ -140,7 +145,7 @@ public class Nivel5 extends Juego implements InputProcessor {
             public void beginContact(Contact contact) {
                 Body bodyA = contact.getFixtureA().getBody();
                 Body bodyB = contact.getFixtureB().getBody();
-                
+
                 // Detectar colisión entre el dulce y Om Nom
                 if ((bodyA.getUserData() != null && bodyA.getUserData().equals("dulce")
                         && bodyB.getUserData() != null && bodyB.getUserData().equals("omnom"))
@@ -158,7 +163,7 @@ public class Nivel5 extends Juego implements InputProcessor {
                         });
                     }
                 }
-                
+
                 // Detectar colisión entre el dulce y los spikes
                 if ((bodyA.getUserData() != null && bodyA.getUserData().equals("dulce")
                         && bodyB.getUserData() != null && bodyB.getUserData().equals("spike"))
@@ -214,15 +219,31 @@ public class Nivel5 extends Juego implements InputProcessor {
         Gdx.input.setInputProcessor(multiplexer);
     }
 
+    private void renderizarSpikes(SpriteBatch batch) {
+        if (listaSpikes != null && spikeTexture != null) {
+            for (Body spike : listaSpikes) {
+                Vector2 pos = spike.getPosition();
+                float size = 0.5f; // Match the size used in crearSpike
+
+                // Draw the spike texture
+                batch.draw(spikeTexture,
+                        pos.x - size,
+                        pos.y - size / 2,
+                        size * 2, // width
+                        size * 1.5f); // height
+            }
+        }
+    }
+
     @Override
     public void render(float delta) {
         if (!nivelCompletado) {
             tiempoJugadoNivel = (System.currentTimeMillis() / 1000) - tiempoInicioNivel;
         }
-        
+
         // Actualizar la física
         mundo.step(delta, 6, 2);
-        
+
         // Limpiar la pantalla
         Gdx.gl.glClearColor(0.95f, 0.9f, 0.8f, 1); // Color de fondo beige claro como en la imagen
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -244,18 +265,12 @@ public class Nivel5 extends Juego implements InputProcessor {
         batchJuego.begin();
         // Dibujar elementos del juego
         ropeSimulacion.render(batchJuego);
-        
+        renderizarSpikes(batchJuego);
+
         // Dibujar spikes aquí si no están en la simulación
         // renderSpikes(batchJuego);
-        
         batchJuego.end();
-        
-        // Dibujar las formas para los spikes utilizando ShapeRenderer
-        shapeRenderer.setProjectionMatrix(camara.combined);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        renderizarSpikes(shapeRenderer);
-        shapeRenderer.end();
-        
+
         try {
             if (hudCamera == null) {
                 hudCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -276,20 +291,20 @@ public class Nivel5 extends Juego implements InputProcessor {
             mostrarDialogoFallo();
         }
     }
-    
+
     private void renderizarSpikes(ShapeRenderer shapeRenderer) {
         // Dibujar los spikes como triángulos
         shapeRenderer.setColor(0.7f, 0.7f, 0.7f, 1f); // Color gris para los spikes
-        
+
         for (Body spikeBody : listaSpikes) {
             Vector2 pos = spikeBody.getPosition();
             float size = 0.5f; // Tamaño de base del spike
-            
+
             // Dibujar el triángulo del spike
             shapeRenderer.triangle(
-                pos.x - size, pos.y - size/2, // Punto inferior izquierdo
-                pos.x + size, pos.y - size/2, // Punto inferior derecho
-                pos.x, pos.y + size        // Punto superior
+                    pos.x - size, pos.y - size / 2, // Punto inferior izquierdo
+                    pos.x + size, pos.y - size / 2, // Punto inferior derecho
+                    pos.x, pos.y + size // Punto superior
             );
         }
     }
@@ -314,6 +329,9 @@ public class Nivel5 extends Juego implements InputProcessor {
 
     @Override
     public void dispose() {
+        if (spikeTexture != null) {
+            spikeTexture.dispose();
+        }
         shapeRenderer.dispose();
         stage.dispose();
         ropeSimulacion.dispose();
@@ -323,7 +341,6 @@ public class Nivel5 extends Juego implements InputProcessor {
     }
 
     // Métodos de creación de objetos
-
     private Body crearCuerpoOmNom(Vector2 pos) {
         Pieza p = new Pieza(1f, BodyDef.BodyType.StaticBody);
         BodyDef bd = new BodyDef();
@@ -380,25 +397,25 @@ public class Nivel5 extends Juego implements InputProcessor {
         bd.type = BodyDef.BodyType.StaticBody;
         bd.position.set(pos);
         Body body = mundo.createBody(bd);
-        
+
         // Definir la forma triangular del spike
         com.badlogic.gdx.physics.box2d.PolygonShape shape = new com.badlogic.gdx.physics.box2d.PolygonShape();
         Vector2[] vertices = new Vector2[3];
         float size = 0.5f; // Tamaño de base del spike
-        
-        vertices[0] = new Vector2(-size, -size/2);  // Inferior izquierda
-        vertices[1] = new Vector2(size, -size/2);   // Inferior derecha
+
+        vertices[0] = new Vector2(-size, -size / 2);  // Inferior izquierda
+        vertices[1] = new Vector2(size, -size / 2);   // Inferior derecha
         vertices[2] = new Vector2(0, size);         // Superior centro
-        
+
         shape.set(vertices);
-        
+
         FixtureDef fd = new FixtureDef();
         fd.shape = shape;
         fd.isSensor = true; // Lo hacemos sensor para detectar la colisión pero sin afectar físicamente
         body.createFixture(fd);
         body.setUserData("spike");
         shape.dispose();
-        
+
         return body;
     }
 
@@ -418,7 +435,6 @@ public class Nivel5 extends Juego implements InputProcessor {
     }
 
     // Métodos para mostrar diálogos
-
     private void mostrarDialogoFelicidades() {
         nivelCompletado = true;
 
@@ -461,7 +477,6 @@ public class Nivel5 extends Juego implements InputProcessor {
     }
 
     // Métodos del InputProcessor para manejar eventos de entrada
-
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         return false;
