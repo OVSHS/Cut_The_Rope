@@ -109,6 +109,10 @@ public class PerfilUsuario {
         this.cantEstrellas= cantEstrellas;
     }
     
+    public void addCantEstrellas(int cantEstrellas){
+        this.cantEstrellas+= cantEstrellas; 
+   }
+    
     public int getNivelDesbloqueado(){
         return nivelDesbloqueado;
     }

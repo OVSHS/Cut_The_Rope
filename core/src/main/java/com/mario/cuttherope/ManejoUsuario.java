@@ -11,7 +11,9 @@ import com.badlogic.gdx.files.FileHandle;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class ManejoUsuario {
 
@@ -31,7 +33,7 @@ public class ManejoUsuario {
     public boolean registerJugador(String apodo, String contrasena, String nombreCompleto, String rutaAvatar) {
         FileHandle folder = Gdx.files.local("usuario/" + apodo);
         if (folder.exists()) {
-            return false;
+            return false; // El jugador ya existe
         }
         folder.mkdirs();
         PerfilUsuario nuevo = new PerfilUsuario();
@@ -43,6 +45,9 @@ public class ManejoUsuario {
         nuevo.setFechaRegistro(now);
         nuevo.setUltimaSesion(now);
         nuevo.setVolumen(1.0f);
+        nuevo.setTiempoJugado(0);
+        nuevo.setCantEstrellas(0);
+        nuevo.setNivelDesbloqueado(1);
         FileHandle file = folder.child("datos.bin");
         return saveUserData(file, nuevo);
     }
@@ -63,11 +68,16 @@ public class ManejoUsuario {
         data.setUltimaSesion(new Date().getTime());
         saveUserData(file, data);
         perfilUsuarioActual = data;
+        nivelDesbloqueado = data.getNivelDesbloqueado(); // Cargar el nivel desbloqueado
         return true;
     }
 
     public void logout() {
-        perfilUsuarioActual = null;
+        if (perfilUsuarioActual != null) {
+            guardarProgreso(); // Guardar el progreso antes de cerrar sesión
+        }
+        perfilUsuarioActual = null; // Cerrar sesión
+        nivelDesbloqueado = 1; // Restablecer el nivel desbloqueado
     }
 
     public PerfilUsuario getPerfilUsuarioActual() {
@@ -91,10 +101,10 @@ public class ManejoUsuario {
     public int getNivelDesbloqueado() {
         return nivelDesbloqueado;
     }
-    
+
     public void desbloquearSiguienteNivel() {
-    nivelDesbloqueado++;
-}
+        nivelDesbloqueado++;
+    }
 
     public void setNivelDesbloqueado(int nivel) {
         // Only increase level if the new one is higher
@@ -105,10 +115,18 @@ public class ManejoUsuario {
         }
 
     }
+    
+    public void completarNivel(int nivelActual) {
+    if (nivelActual == nivelDesbloqueado) {
+        desbloquearSiguienteNivel();
+    }
+}
+
     private void cargarProgreso() {
-    // Load from preferences
     if (preferences.contains("nivelDesbloqueado")) {
         nivelDesbloqueado = preferences.getInteger("nivelDesbloqueado");
+    } else {
+        nivelDesbloqueado = 1; // Valor por defecto si no hay progreso guardado
     }
 }
 
@@ -158,5 +176,28 @@ public class ManejoUsuario {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public List<PerfilUsuario> obtenerRanking() {
+        List<PerfilUsuario> ranking = new ArrayList<>();
+
+        // Obtener la lista de carpetas de usuarios
+        FileHandle usuariosFolder = Gdx.files.local("usuario/");
+        if (usuariosFolder.exists() && usuariosFolder.isDirectory()) {
+            for (FileHandle usuarioFolder : usuariosFolder.list()) {
+                FileHandle datosBin = usuarioFolder.child("datos.bin");
+                if (datosBin.exists()) {
+                    PerfilUsuario perfil = loadUserData(datosBin);
+                    if (perfil != null) {
+                        ranking.add(perfil);
+                    }
+                }
+            }
+        }
+
+        // Ordenar la lista por cantidad de estrellas (de mayor a menor)
+        ranking.sort((p1, p2) -> Integer.compare(p2.getCantEstrellas(), p1.getCantEstrellas()));
+
+        return ranking;
     }
 }

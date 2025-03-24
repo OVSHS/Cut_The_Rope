@@ -254,4 +254,8 @@ public class RopeSimulacion {
     public int getNumeroNivel() {
         return numeroNivel;
     }
+    
+    public int getEstrellasRecogidas(){
+        return estrellasRecogidas;
+    }
 }

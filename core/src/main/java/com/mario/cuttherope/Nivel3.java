@@ -51,6 +51,9 @@ public class Nivel3 extends Juego implements InputProcessor {
     private RopeSimulacion ropeSimulacion;
     private Idiomas idioma;
     private Box2DDebugRenderer debugRenderer;
+    private long tiempoInicioNivel;
+    private long tiempoJugadoNivel;
+    private boolean nivelCompletado = false;
 
     private final float ANCHO_MUNDO = 20f;
     private final float ALTO_MUNDO = 30f;
@@ -68,6 +71,11 @@ public class Nivel3 extends Juego implements InputProcessor {
         idioma = Idiomas.getInstance();
         mundo = new World(new Vector2(0, -9.8f), true);
         debugRenderer = new Box2DDebugRenderer();
+        
+        tiempoInicioNivel = System.currentTimeMillis() / 1000;
+        tiempoJugadoNivel = 0;
+        nivelCompletado = false;
+
 
         shapeRenderer = new ShapeRenderer();
         stage = new Stage(new ScreenViewport());
@@ -132,7 +140,7 @@ public class Nivel3 extends Juego implements InputProcessor {
                                 cuerpoDulce = null;
                             }
                             ropeSimulacion.setDulceComido(true);
-                            mostrarDialogoFelicidades();
+                            mostrarDialogoFelicidades(ropeSimulacion.getEstrellasRecogidas());
                         });
                     }
                 }
@@ -273,18 +281,29 @@ public class Nivel3 extends Juego implements InputProcessor {
         return new StarObject(p, body);
     }
 
-    private void mostrarDialogoFelicidades() {
-        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"),
-                new Skin(Gdx.files.internal("uiskin.json"))) {
-            @Override
-            protected void result(Object object) {
-                game.setScreen(new MenuPrincipal(game, loginManager));
-            }
-        };
-        dialog.text(idioma.get("dialog.felicidadesTexto"));
-        dialog.button(idioma.get("btn.aceptar"), true);
-        dialog.show(stage);
+    private void mostrarDialogoFelicidades(int estrellasRecolectadas) {
+    nivelCompletado = true;
+
+    // Guardar el tiempo jugado y sumar las estrellas recolectadas
+    PerfilUsuario perfil = loginManager.getPerfilUsuarioActual();
+    if (perfil != null) {
+        perfil.addTiempoJugado(tiempoJugadoNivel);
+        perfil.addCantEstrellas(estrellasRecolectadas); // Sumar estrellas al total
+        loginManager.actualizarPerfil(perfil); // Guardar el perfil actualizado
     }
+
+    // Mostrar diálogo de felicitaciones
+    Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"),
+            new Skin(Gdx.files.internal("uiskin.json"))) {
+        @Override
+        protected void result(Object object) {
+            game.setScreen(new MenuNiveles(game, loginManager));
+        }
+    };
+    dialog.text(idioma.get("dialog.felicidadesTexto") + "\nEstrellas recolectadas: " + estrellasRecolectadas);
+    dialog.button(idioma.get("btn.aceptar"), true);
+    dialog.show(stage);
+}
 
     private void mostrarDialogoFallo() {
         Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"),

@@ -60,8 +60,8 @@ public class Nivel4 extends Juego implements InputProcessor {
     private RopeSimulacion ropeSimulacion;
     private Idiomas idioma;
     private Box2DDebugRenderer debugRenderer;
-    private long tiempoInicioNivel;  // Tiempo en que comienza el nivel
-    private long tiempoJugadoNivel;  // Tiempo jugado en el nivel (en segundos)
+    private long tiempoInicioNivel;
+    private long tiempoJugadoNivel;
     private boolean nivelCompletado = false;
 
     private final float ANCHO_MUNDO = 20f;
@@ -134,7 +134,7 @@ public class Nivel4 extends Juego implements InputProcessor {
                                 cuerpoDulce = null;
                             }
                             ropeSimulacion.setDulceComido(true);
-                            mostrarDialogoFelicidades();
+                            mostrarDialogoFelicidades(ropeSimulacion.getEstrellasRecogidas());
                         });
                     }
                 }
@@ -300,25 +300,29 @@ public class Nivel4 extends Juego implements InputProcessor {
         return new StarObject(p, body);
     }
 
-    private void mostrarDialogoFelicidades() {
-        nivelCompletado = true;
-        PerfilUsuario perfil = loginManager.getPerfilUsuarioActual();
-        if (perfil != null) {
-            perfil.addTiempoJugado(tiempoJugadoNivel);
-            loginManager.actualizarPerfil(perfil);  // Guardar el perfil actualizado
-        }
+    private void mostrarDialogoFelicidades(int estrellasRecolectadas) {
+    nivelCompletado = true;
 
-        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"),
-                new Skin(Gdx.files.internal("uiskin.json"))) {
-            @Override
-            protected void result(Object object) {
-                game.setScreen(new MenuPrincipal(game, loginManager));
-            }
-        };
-        dialog.text(idioma.get("dialog.felicidadesTexto"));
-        dialog.button(idioma.get("btn.aceptar"), true);
-        dialog.show(stage);
+    // Guardar el tiempo jugado y sumar las estrellas recolectadas
+    PerfilUsuario perfil = loginManager.getPerfilUsuarioActual();
+    if (perfil != null) {
+        perfil.addTiempoJugado(tiempoJugadoNivel);
+        perfil.addCantEstrellas(estrellasRecolectadas); // Sumar estrellas al total
+        loginManager.actualizarPerfil(perfil); // Guardar el perfil actualizado
     }
+
+    // Mostrar diálogo de felicitaciones
+    Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"),
+            new Skin(Gdx.files.internal("uiskin.json"))) {
+        @Override
+        protected void result(Object object) {
+            game.setScreen(new MenuNiveles(game, loginManager));
+        }
+    };
+    dialog.text(idioma.get("dialog.felicidadesTexto") + "\nEstrellas recolectadas: " + estrellasRecolectadas);
+    dialog.button(idioma.get("btn.aceptar"), true);
+    dialog.show(stage);
+}
 
     private void mostrarDialogoFallo() {
         Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"),

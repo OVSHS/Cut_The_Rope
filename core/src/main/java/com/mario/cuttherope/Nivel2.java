@@ -50,6 +50,9 @@ public class Nivel2 extends Juego implements InputProcessor {
     private Box2DDebugRenderer debugRenderer;
     private final float ANCHO_MUNDO = 20f;
     private final float ALTO_MUNDO = 30f;
+    private long tiempoInicioNivel;
+    private long tiempoJugadoNivel;
+    private boolean nivelCompletado = false;
 
     public Nivel2(MainGame mainGame, ManejoUsuario loginManager, int nivel) {
         super(mainGame, loginManager);
@@ -73,6 +76,11 @@ public class Nivel2 extends Juego implements InputProcessor {
         hudCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         hudCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batchJuego = new SpriteBatch();
+        
+        tiempoInicioNivel = System.currentTimeMillis() / 1000;
+        tiempoJugadoNivel = 0;
+        nivelCompletado = false;
+
 
         cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO / 2f, 3f));
         cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 5f));
@@ -118,7 +126,7 @@ public class Nivel2 extends Juego implements InputProcessor {
                                 cuerpoDulce = null;
                             }
                             ropeSimulacion.setDulceComido(true);
-                            mostrarDialogoFelicidades();
+                            mostrarDialogoFelicidades(ropeSimulacion.getEstrellasRecogidas());
                         });
                     }
                 }
@@ -257,17 +265,29 @@ public class Nivel2 extends Juego implements InputProcessor {
         return new StarObject(p, body);
     }
 
-    private void mostrarDialogoFelicidades() {
-        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
-            @Override
-            protected void result(Object object) {
-                game.setScreen(new MenuPrincipal(game, loginManager));
-            }
-        };
-        dialog.text(idioma.get("dialog.felicidadesTexto"));
-        dialog.button(idioma.get("btn.aceptar"), true);
-        dialog.show(stage);
+    private void mostrarDialogoFelicidades(int estrellasRecolectadas) {
+    nivelCompletado = true;
+
+    // Guardar el tiempo jugado y sumar las estrellas recolectadas
+    PerfilUsuario perfil = loginManager.getPerfilUsuarioActual();
+    if (perfil != null) {
+        perfil.addTiempoJugado(tiempoJugadoNivel);
+        perfil.addCantEstrellas(estrellasRecolectadas); // Sumar estrellas al total
+        loginManager.actualizarPerfil(perfil); // Guardar el perfil actualizado
     }
+
+    // Mostrar diálogo de felicitaciones
+    Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"),
+            new Skin(Gdx.files.internal("uiskin.json"))) {
+        @Override
+        protected void result(Object object) {
+            game.setScreen(new MenuNiveles(game, loginManager));
+        }
+    };
+    dialog.text(idioma.get("dialog.felicidadesTexto") + "\nEstrellas recolectadas: " + estrellasRecolectadas);
+    dialog.button(idioma.get("btn.aceptar"), true);
+    dialog.show(stage);
+}
 
     private void mostrarDialogoFallo() {
         Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
@@ -303,10 +323,12 @@ public class Nivel2 extends Juego implements InputProcessor {
     }
 
     @Override
-    public void pause() { }
+    public void pause() {
+    }
 
     @Override
-    public void resume() { }
+    public void resume() {
+    }
 
     @Override
     public void hide() {
@@ -314,22 +336,34 @@ public class Nivel2 extends Juego implements InputProcessor {
     }
 
     @Override
-    public boolean keyDown(int keycode) { return false; }
+    public boolean keyDown(int keycode) {
+        return false;
+    }
 
     @Override
-    public boolean keyUp(int keycode) { return false; }
+    public boolean keyUp(int keycode) {
+        return false;
+    }
 
     @Override
-    public boolean keyTyped(char character) { return false; }
+    public boolean keyTyped(char character) {
+        return false;
+    }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) { return false; }
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
 
     @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) { return false; }
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
 
     @Override
-    public boolean touchCancelled(int screenX, int screenY, int pointer, int button) { return false; }
+    public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
@@ -340,8 +374,12 @@ public class Nivel2 extends Juego implements InputProcessor {
     }
 
     @Override
-    public boolean mouseMoved(int screenX, int screenY) { return false; }
+    public boolean mouseMoved(int screenX, int screenY) {
+        return false;
+    }
 
     @Override
-    public boolean scrolled(float amountX, float amountY) { return false; }
+    public boolean scrolled(float amountX, float amountY) {
+        return false;
+    }
 }

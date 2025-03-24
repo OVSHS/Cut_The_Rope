@@ -98,17 +98,17 @@ public class PantallaPerfil implements Screen {
         table.add(new Label(formatoFecha(perfil.getUltimaSesion()), skin)).pad(5).left();
         table.row();
         try {
-            table.add(new Label("Tiempo Jugado", skin)).pad(5).right();
+            table.add(new Label(idioma.get("lbl.tiempo"), skin)).pad(5).right();
             table.add(new Label(perfil.getTiempoFormateado(), skin)).pad(5).left();
             table.row();
 
             // Fixed code for stars display - removed extra parenthesis
-            table.add(new Label("Estrellas", skin)).pad(5).right();
+            table.add(new Label(idioma.get("lbl.estrellas"), skin)).pad(5).right();
             table.add(new Label(String.valueOf(perfil.getCantEstrellas()), skin)).pad(5).left();
             table.row();
 
             // Fixed code for level info - removed extra parenthesis
-            table.add(new Label("Nivel", skin)).pad(5).right();
+            table.add(new Label(idioma.get("lbl.nivel"), skin)).pad(5).right();
             table.add(new Label(String.valueOf(perfil.getNivelDesbloqueado()), skin)).pad(5).left();
             table.row();
         } catch (Exception e) {

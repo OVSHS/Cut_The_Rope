@@ -94,17 +94,15 @@ public class Nivel5 extends Juego implements InputProcessor {
         cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO / 2f, 4f)); // Om Nom en la parte inferior
         cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 10f));
 
-        Body anclajemedio = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f -2f, 19f));
-        Body anclajeabajo = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f -2f, 12f));
-        Body anclajearriba = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f -2f, 24f));
-        Body anclajederecha = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f+4f ,24f));
-        
+        Body anclajemedio = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f - 2f, 19f));
+        Body anclajeabajo = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f - 2f, 12f));
+        Body anclajearriba = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f - 2f, 24f));
+        Body anclajederecha = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f + 4f, 24f));
 
         Cuerda cuerdamedio = new Cuerda(anclajemedio, cuerpoDulce, mundo);
         Cuerda cuerdaabajo = new Cuerda(anclajeabajo, cuerpoDulce, mundo);
         Cuerda cuerdaarriba = new Cuerda(anclajearriba, cuerpoDulce, mundo);
         Cuerda cuerdaderecha = new Cuerda(anclajederecha, cuerpoDulce, mundo);
-        
 
         cuerdamedio.setLongitud(6f);
         cuerdaabajo.setLongitud(5.5f);
@@ -124,13 +122,13 @@ public class Nivel5 extends Juego implements InputProcessor {
         // Crear spikes (como se ve en la imagen)
         // Primera fila de spikes
         for (int i = 0; i < 2; i++) {
-            Body spike = crearSpike(new Vector2(8f + i *2f, 15f));
+            Body spike = crearSpike(new Vector2(8f + i * 2f, 15f));
             listaSpikes.add(spike);
         }
 
         // Segunda fila de spikes
         for (int i = 0; i < 2; i++) {
-            Body spike = crearSpike(new Vector2(8f + i * 2f,8f));
+            Body spike = crearSpike(new Vector2(8f + i * 2f, 8f));
             listaSpikes.add(spike);
         }
 
@@ -159,7 +157,7 @@ public class Nivel5 extends Juego implements InputProcessor {
                                 cuerpoDulce = null;
                             }
                             ropeSimulacion.setDulceComido(true);
-                            mostrarDialogoFelicidades();
+                            mostrarDialogoFelicidades(ropeSimulacion.getEstrellasRecogidas());
                         });
                     }
                 }
@@ -332,7 +330,7 @@ public class Nivel5 extends Juego implements InputProcessor {
         if (spikeTexture != null) {
             spikeTexture.dispose();
         }
-        shapeRenderer.dispose();
+        
         stage.dispose();
         ropeSimulacion.dispose();
         mundo.dispose();
@@ -435,27 +433,29 @@ public class Nivel5 extends Juego implements InputProcessor {
     }
 
     // Métodos para mostrar diálogos
-    private void mostrarDialogoFelicidades() {
-        nivelCompletado = true;
+    private void mostrarDialogoFelicidades(int estrellasRecolectadas) {
+    nivelCompletado = true;
 
-        // Actualizar el perfil del usuario con el tiempo jugado
-        PerfilUsuario perfil = loginManager.getPerfilUsuarioActual();
-        if (perfil != null) {
-            perfil.addTiempoJugado(tiempoJugadoNivel);
-            loginManager.actualizarPerfil(perfil);
-        }
-
-        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"),
-                new Skin(Gdx.files.internal("uiskin.json"))) {
-            @Override
-            protected void result(Object object) {
-                game.setScreen(new MenuNiveles(game, loginManager));
-            }
-        };
-        dialog.text(idioma.get("dialog.felicidadesTexto"));
-        dialog.button(idioma.get("btn.aceptar"), true);
-        dialog.show(stage);
+    // Guardar el tiempo jugado y sumar las estrellas recolectadas
+    PerfilUsuario perfil = loginManager.getPerfilUsuarioActual();
+    if (perfil != null) {
+        perfil.addTiempoJugado(tiempoJugadoNivel);
+        perfil.addCantEstrellas(estrellasRecolectadas); // Sumar estrellas al total
+        loginManager.actualizarPerfil(perfil); // Guardar el perfil actualizado
     }
+
+    // Mostrar diálogo de felicitaciones
+    Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"),
+            new Skin(Gdx.files.internal("uiskin.json"))) {
+        @Override
+        protected void result(Object object) {
+            game.setScreen(new MenuNiveles(game, loginManager));
+        }
+    };
+    dialog.text(idioma.get("dialog.felicidadesTexto") + "\nEstrellas recolectadas: " + estrellasRecolectadas);
+    dialog.button(idioma.get("btn.aceptar"), true);
+    dialog.show(stage);
+}
 
     private void mostrarDialogoFallo() {
         Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"),

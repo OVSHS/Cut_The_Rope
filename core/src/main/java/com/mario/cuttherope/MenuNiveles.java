@@ -33,7 +33,7 @@ public class MenuNiveles implements Screen {
     private Texture[] frames;
     private int currentFrame = 0;
     private float timeElapsed = 0;
-     private Idiomas idioma;
+    private Idiomas idioma;
 
     // Texturas
     private Texture levelButtonTexture;
@@ -74,20 +74,20 @@ public class MenuNiveles implements Screen {
 
     @Override
     public void show() {
-         idioma = Idiomas.getInstance();
+        idioma = Idiomas.getInstance();
         batch = new SpriteBatch();
         stage = new Stage(new ScreenViewport());
 
-        // Create fonts
+        // Crear fuentes
         createFonts();
 
-        // Load textures
+        // Cargar texturas
         levelButtonTexture = new Texture("level_button.png");
         lockedLevelButtonTexture = new Texture("level_button_locked.png");
         backButtonTexture = new Texture("back_button.png");
-        logoTexture = new Texture("title_banner.png"); // Asegúrate de tener esta textura
+        logoTexture = new Texture("title_banner.png");
 
-        // Create main table to organize the layout
+        // Crear tabla principal para organizar el diseño
         Table mainTable = new Table();
         mainTable.setFillParent(true);
 
@@ -98,36 +98,35 @@ public class MenuNiveles implements Screen {
         Image logoImage = new Image(logoTexture);
         mainTable.add(logoImage).padBottom(60).row(); // Mayor padding abajo del logo
 
-        // Create a table for the level buttons grid
+        // Crear una tabla para la cuadrícula de botones de niveles
         Table levelGrid = new Table();
-        levelGrid.defaults().pad(10); // Reduced padding for better spacing
+        levelGrid.defaults().pad(10); // Espaciado reducido para mejor distribución
 
-        // Add level buttons to the grid
+        // Añadir botones de niveles a la cuadrícula
         for (int i = 1; i <= maxLevels; i++) {
             final int levelNum = i;
-            boolean isUnlocked = levelNum <= unlockedLevels;
+            boolean isUnlocked = levelNum < unlockedLevels;
 
             if (isUnlocked) {
-                // Create a stack to hold button and number
+                // Crear un botón de nivel desbloqueado
                 Stack buttonStack = new Stack();
 
-                // Create an unlocked level button with better styling
                 Button.ButtonStyle buttonStyle = new Button.ButtonStyle();
                 buttonStyle.up = new TextureRegionDrawable(levelButtonTexture);
                 buttonStyle.down = new TextureRegionDrawable(levelButtonTexture);
 
                 Button levelButton = new Button(buttonStyle);
 
-                // Create label for level number
+                // Crear etiqueta para el número del nivel
                 Label.LabelStyle numberStyle = new Label.LabelStyle(levelFont, Color.WHITE);
                 Label numberLabel = new Label(String.valueOf(levelNum), numberStyle);
                 numberLabel.setAlignment(Align.center);
 
-                // Add components to stack
+                // Añadir componentes al stack
                 buttonStack.add(levelButton);
                 buttonStack.add(numberLabel);
 
-                // Add hover effect and click handler to the stack
+                // Añadir efecto hover y manejador de clic al stack
                 buttonStack.addListener(new ClickListener() {
                     public void enter(InputEvent event, float x, float y, int pointer, int button) {
                         buttonStack.setScale(1.05f); // Efecto hover reducido
@@ -146,7 +145,7 @@ public class MenuNiveles implements Screen {
                 // Botones más pequeños
                 levelGrid.add(buttonStack).pad(10).width(80).height(80);
             } else {
-                // Similar para los niveles bloqueados
+                // Crear un botón de nivel bloqueado
                 Stack buttonStack = new Stack();
 
                 Button.ButtonStyle style = new Button.ButtonStyle();
@@ -165,7 +164,7 @@ public class MenuNiveles implements Screen {
                 levelGrid.add(buttonStack).pad(10).width(80).height(80);
             }
 
-            // Start a new row after columnsPerRow buttons
+            // Iniciar una nueva fila después de `columnsPerRow` botones
             if (i % columnsPerRow == 0) {
                 levelGrid.row();
             }
@@ -195,12 +194,12 @@ public class MenuNiveles implements Screen {
             }
         });
 
-        // Add elements to the main table with better spacing
+        // Añadir elementos a la tabla principal con mejor espaciado
         mainTable.pad(30);
         mainTable.add(levelGrid).expand().row();
         mainTable.add(backButton).left().bottom().pad(20).width(100).height(60);
 
-        // Add the table to the stage
+        // Añadir la tabla al stage
         stage.addActor(mainTable);
         Gdx.input.setInputProcessor(stage);
     }
@@ -220,7 +219,7 @@ public class MenuNiveles implements Screen {
         // Launch the appropriate level based on the level number
         switch (levelNum) {
             case 1:
-                game.setScreen(new Nivel5(game, loginManager, 1));
+                game.setScreen(new Nivel1(game, loginManager, 1));
                 break;
             case 2:
                 game.setScreen(new Nivel2(game, loginManager, 2));

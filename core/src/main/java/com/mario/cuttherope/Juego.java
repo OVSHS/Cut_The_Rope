@@ -7,6 +7,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
+import javax.swing.SwingUtilities;
 
 public abstract class Juego implements Screen {
   
@@ -18,6 +19,11 @@ public abstract class Juego implements Screen {
 
     protected MainGame mainGame;
     protected ManejoUsuario loginManager;
+    
+    protected Thread timerThread;
+    protected volatile boolean timerRunning;
+    protected long startTime; 
+    protected long elapsedTime; 
     // ...
     public Juego(MainGame mainGame, ManejoUsuario loginManager) {
         this.mainGame = mainGame;
