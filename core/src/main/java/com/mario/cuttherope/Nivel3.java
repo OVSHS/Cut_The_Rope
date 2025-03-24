@@ -187,6 +187,11 @@ public class Nivel3 extends Juego implements InputProcessor {
 
     @Override
     public void render(float delta) {
+
+        if (!nivelCompletado) {
+            // Calcular el tiempo jugado en el nivel
+            tiempoJugadoNivel = (System.currentTimeMillis() / 1000) - tiempoInicioNivel;
+        }
         mundo.step(delta, 6, 2);
         Gdx.gl.glClearColor(0.76f, 0.67f, 0.5f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -408,6 +413,7 @@ public class Nivel3 extends Juego implements InputProcessor {
     public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
         return false;
     }
+
     public void nivelCompletado(int nivel, int estrellas) {
         // Registrar la partida en el historial de logs
         loginManager.registrarPartida(nivel, estrellas);

@@ -173,6 +173,10 @@ public class Nivel2 extends Juego implements InputProcessor {
 
     @Override
     public void render(float delta) {
+        if (!nivelCompletado) {
+            // Calcular el tiempo jugado en el nivel
+            tiempoJugadoNivel = (System.currentTimeMillis() / 1000) - tiempoInicioNivel;
+        }
         mundo.step(delta, 6, 2);
         Gdx.gl.glClearColor(0.76f, 0.67f, 0.5f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);

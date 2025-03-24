@@ -49,7 +49,7 @@ public class ManejoUsuario {
         nuevo.setVolumen(1.0f);
         nuevo.setTiempoJugado(0);
         nuevo.setCantEstrellas(0);
-        nuevo.getNivelDesbloqueado();
+        nuevo.setNivelDesbloqueado(1);
         FileHandle file = folder.child("datos.bin");
         return saveUserData(file, nuevo);
     }

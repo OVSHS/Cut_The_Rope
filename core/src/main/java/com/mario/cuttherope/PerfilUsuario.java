@@ -35,7 +35,7 @@ public class PerfilUsuario {
         this.volumen = volumen;
         this.tiempoJugado = tiempoJugado;
         this.cantEstrellas= cantEstrellas;
-        this.nivelDesbloqueado= 0;
+        this.nivelDesbloqueado= 1;
     }
 
     public String getApodo() {
