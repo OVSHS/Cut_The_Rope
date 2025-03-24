@@ -249,7 +249,7 @@ public class Nivel5 extends Juego implements InputProcessor {
         mundo.step(delta, 6, 2);
 
         // Limpiar la pantalla
-        Gdx.gl.glClearColor(0.95f, 0.9f, 0.8f, 1); // Color de fondo beige claro como en la imagen
+        Gdx.gl.glClearColor(0.76f, 0.67f, 0.5f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         // Dibujar debug de física si es necesario
