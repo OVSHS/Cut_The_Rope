@@ -67,7 +67,6 @@ public class Nivel1 extends Juego implements InputProcessor {
         idioma = Idiomas.getInstance();
         mundo = new World(new Vector2(0, -9.8f), true);
         debugRenderer = new Box2DDebugRenderer();
-        shapeRenderer = new ShapeRenderer();
         stage = new Stage(new ScreenViewport());
         camara = new OrthographicCamera(ANCHO_MUNDO, ALTO_MUNDO);
         camara.position.set(ANCHO_MUNDO / 2f, ALTO_MUNDO / 2f, 0);

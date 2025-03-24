@@ -56,7 +56,6 @@ public class PantallaPerfil implements Screen {
             new Texture("fotomenu3.png"),
             new Texture("fotomenu2.png"),
             new Texture("fotomenu1.png"),};
-
     }
 
     public PantallaPerfil(MainGame game, ManejoUsuario manejoUsuario) {
@@ -98,7 +97,6 @@ public class PantallaPerfil implements Screen {
         table.add(new Label(idioma.get("lbl.ultimaSesion"), skin)).pad(5).right();
         table.add(new Label(formatoFecha(perfil.getUltimaSesion()), skin)).pad(5).left();
         table.row();
-        
 
         avatarImage = new Image();
         mostrarAvatar(perfil.getRutaAvatar());
@@ -106,6 +104,7 @@ public class PantallaPerfil implements Screen {
         table.add(avatarImage).pad(5).width(100).height(100).left();
         table.row();
 
+        // Botón para Cambiar Foto 
         TextButton btnCambiarFoto = new TextButton(idioma.get("btn.cambiarFoto"), skin);
         btnCambiarFoto.addListener(new ClickListener() {
             @Override
@@ -116,6 +115,32 @@ public class PantallaPerfil implements Screen {
         table.add(btnCambiarFoto).colspan(2).pad(5).center();
         table.row();
 
+        // Botón para Eliminar Cuenta 
+        TextButton btnEliminarCuenta = new TextButton(idioma.get("btn.eliminarCuenta"), skin);
+        btnEliminarCuenta.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                // Mostrar dialogo de confirmacion
+                Dialog confirmDialog = new Dialog(idioma.get("dialog.confirmarEliminarTitulo"), skin) {
+                    @Override
+                    protected void result(Object object) {
+                        boolean confirmed = (Boolean) object;
+                        if (confirmed) {
+                            eliminarCuenta(perfil);
+                            game.setScreen(new MenuInicio(game));
+                        }
+                    }
+                };
+                confirmDialog.text(idioma.get("dialog.confirmarEliminarTexto"));
+                confirmDialog.button(idioma.get("dialog.si"), true);
+                confirmDialog.button(idioma.get("dialog.no"), false);
+                confirmDialog.show(stage);
+            }
+        });
+        table.add(btnEliminarCuenta).colspan(2).pad(5).center();
+        table.row();
+
+        // Botón para Regresar
         TextButton btnRegresar = new TextButton(idioma.get("btn.regresar"), skin);
         btnRegresar.addListener(new ClickListener() {
             @Override
@@ -124,6 +149,15 @@ public class PantallaPerfil implements Screen {
             }
         });
         table.add(btnRegresar).colspan(2).padTop(20).center();
+    }
+
+    private void eliminarCuenta(PerfilUsuario perfil) {
+        // Obtener la carpeta del usuario y eliminarla recursivamente
+        FileHandle folder = Gdx.files.local("usuario/" + perfil.getApodo());
+        if (folder.exists()) {
+            folder.deleteDirectory();
+        }
+       
     }
 
     private void seleccionarAvatar(PerfilUsuario perfil) {
@@ -136,11 +170,11 @@ public class PantallaPerfil implements Screen {
                 File file = fileChooser.getSelectedFile();
                 selectedAvatar = Gdx.files.absolute(file.getAbsolutePath());
                 Gdx.app.postRunnable(() -> {
-                    // Cambiamos el avatar en pantalla
+                    // Actualizar el avatar en pantalla
                     avatarImage.setDrawable(new TextureRegionDrawable(new Texture(selectedAvatar)));
-                    // Actualizamos la ruta en el perfil
+                    // Actualizar la ruta en el perfil
                     perfil.setRutaAvatar(selectedAvatar.path());
-                    // Guardamos de inmediato el perfil con la nueva ruta
+                    // Guardar el cambio en el perfil
                     guardarCambioAvatar(perfil);
                     mostrarMensaje(idioma.get("msg.avatarActualizado"));
                 });
@@ -169,14 +203,14 @@ public class PantallaPerfil implements Screen {
         }
     }
 
-    private void mostrarMensaje(String mensaje) {
+    private void mostrarMensaje(String texto) {
         Dialog dialog = new Dialog(idioma.get("dialog.aviso"), skin) {
             @Override
             protected void result(Object object) {
                 hide();
             }
         };
-        dialog.text(mensaje);
+        dialog.text(texto);
         dialog.button(idioma.get("dialog.ok"), true);
         dialog.show(stage);
     }
@@ -200,7 +234,7 @@ public class PantallaPerfil implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         timeElapsed += delta;
-        if (timeElapsed > 0.225f) { // Change frame every 0.1 sec
+        if (timeElapsed > 0.225f) { // Cambia de frame cada 0.225 seg
             currentFrame = (currentFrame + 1) % frames.length;
             timeElapsed = 0;
         }
