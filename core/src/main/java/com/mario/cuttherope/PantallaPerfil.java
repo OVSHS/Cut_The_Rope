@@ -97,6 +97,23 @@ public class PantallaPerfil implements Screen {
         table.add(new Label(idioma.get("lbl.ultimaSesion"), skin)).pad(5).right();
         table.add(new Label(formatoFecha(perfil.getUltimaSesion()), skin)).pad(5).left();
         table.row();
+        try {
+            table.add(new Label("Tiempo Jugado", skin)).pad(5).right();
+            table.add(new Label(perfil.getTiempoFormateado(), skin)).pad(5).left();
+            table.row();
+
+            // Fixed code for stars display - removed extra parenthesis
+            table.add(new Label("Estrellas", skin)).pad(5).right();
+            table.add(new Label(String.valueOf(perfil.getCantEstrellas()), skin)).pad(5).left();
+            table.row();
+
+            // Fixed code for level info - removed extra parenthesis
+            table.add(new Label("Nivel", skin)).pad(5).right();
+            table.add(new Label(String.valueOf(perfil.getNivelDesbloqueado()), skin)).pad(5).left();
+            table.row();
+        } catch (Exception e) {
+            System.out.println("Error al mostrar estadísticas: " + e.getMessage());
+        }
 
         avatarImage = new Image();
         mostrarAvatar(perfil.getRutaAvatar());
@@ -157,7 +174,7 @@ public class PantallaPerfil implements Screen {
         if (folder.exists()) {
             folder.deleteDirectory();
         }
-       
+
     }
 
     private void seleccionarAvatar(PerfilUsuario perfil) {

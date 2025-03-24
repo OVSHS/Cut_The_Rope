@@ -449,7 +449,7 @@ public class Nivel5 extends Juego implements InputProcessor {
                 new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
-                game.setScreen(new MenuPrincipal(game, loginManager));
+                game.setScreen(new MenuNiveles(game, loginManager));
             }
         };
         dialog.text(idioma.get("dialog.felicidadesTexto"));
