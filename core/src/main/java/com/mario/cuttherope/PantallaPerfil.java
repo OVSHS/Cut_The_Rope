@@ -98,6 +98,14 @@ public class PantallaPerfil implements Screen {
         table.add(new Label(idioma.get("lbl.ultimaSesion"), skin)).pad(5).right();
         table.add(new Label(formatoFecha(perfil.getUltimaSesion()), skin)).pad(5).left();
         table.row();
+        
+        table.add(new Label(idioma.get("lbl.tiempojugado"), skin)).pad(5).right();
+        table.add(new Label(perfil.getNombreCompleto, skin)).pad(5).left();
+        table.row();
+        
+        table.add(new Label(idioma.get("lbl.nombreCompleto"), skin)).pad(5).right();
+        table.add(new Label(perfil.getCantEstrellas(), skin)).pad(5).left();
+        table.row();
 
         avatarImage = new Image();
         mostrarAvatar(perfil.getRutaAvatar());

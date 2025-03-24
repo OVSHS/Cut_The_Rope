@@ -9,19 +9,23 @@ package com.mario.cuttherope;
  * @author Mario
  */
 public class PerfilUsuario {
-  private String apodo;
+
+    private String apodo;
     private String contrasena;
     private String nombreCompleto;
     private String rutaAvatar;
     private long fechaRegistro;
     private long ultimaSesion;
-    private float volumen; 
+    private float volumen;
+    private long tiempoJugado;
+    private int cantEstrellas;
+    private int nivelDesbloqueado;
 
     public PerfilUsuario() {
     }
 
     public PerfilUsuario(String apodo, String contrasena, String nombreCompleto, String rutaAvatar,
-                         long fechaRegistro, long ultimaSesion, float volumen) {
+            long fechaRegistro, long ultimaSesion, float volumen, long tiempoJugado, int cantEstrellas, int nivelDesbloqueado) {
         this.apodo = apodo;
         this.contrasena = contrasena;
         this.nombreCompleto = nombreCompleto;
@@ -29,6 +33,9 @@ public class PerfilUsuario {
         this.fechaRegistro = fechaRegistro;
         this.ultimaSesion = ultimaSesion;
         this.volumen = volumen;
+        this.tiempoJugado = tiempoJugado;
+        this.cantEstrellas= cantEstrellas;
+        this.nivelDesbloqueado= nivelDesbloqueado;
     }
 
     public String getApodo() {
@@ -82,8 +89,43 @@ public class PerfilUsuario {
     public float getVolumen() {
         return volumen;
     }
-
     public void setVolumen(float volumen) {
         this.volumen = volumen;
+    }
+
+    public long getTiempoJugado() {
+        return tiempoJugado;
+    }
+    
+    public void setTiempoJugado(long segundos) {
+        this.tiempoJugado = segundos;
+    }
+    
+    public int getCantEstrellas(){
+        return cantEstrellas;
+    }
+    
+    public void setCantEstrellas(int cantEstrellas){
+        this.cantEstrellas= cantEstrellas;
+    }
+    
+    public int getNivelDesbloqueado(){
+        return nivelDesbloqueado;
+    }
+    
+    public void setNivelDesbloqueado(int nivelDesbloqueado){
+        this.nivelDesbloqueado= nivelDesbloqueado;
+    }
+
+    public void addTiempoJugado(long segundos) {
+        this.tiempoJugado += segundos;
+    }
+
+    public String getTiempoFormateado() {
+        long hours = tiempoJugado / 3600;
+        long minutes = (tiempoJugado % 3600) / 60;
+        long seconds = tiempoJugado % 60;
+
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
 }

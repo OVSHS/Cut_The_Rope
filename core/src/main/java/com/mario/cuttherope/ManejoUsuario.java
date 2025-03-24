@@ -127,6 +127,9 @@ public class ManejoUsuario {
             dos.writeLong(p.getFechaRegistro());
             dos.writeLong(p.getUltimaSesion());
             dos.writeFloat(p.getVolumen());
+            dos.writeLong(p.getTiempoJugado());
+            dos.writeInt(p.getCantEstrellas());
+            dos.writeInt(p.getNivelDesbloqueado());
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -147,6 +150,9 @@ public class ManejoUsuario {
             p.setFechaRegistro(dis.readLong());
             p.setUltimaSesion(dis.readLong());
             p.setVolumen(dis.readFloat());
+            p.setTiempoJugado(dis.readLong());
+            p.setCantEstrellas(dis.readInt());
+            p.setNivelDesbloqueado(dis.readInt());
             return p;
         } catch (IOException e) {
             e.printStackTrace();

@@ -60,6 +60,9 @@ public class Nivel4 extends Juego implements InputProcessor {
     private RopeSimulacion ropeSimulacion;
     private Idiomas idioma;
     private Box2DDebugRenderer debugRenderer;
+    private long tiempoInicioNivel;  // Tiempo en que comienza el nivel
+    private long tiempoJugadoNivel;  // Tiempo jugado en el nivel (en segundos)
+    private boolean nivelCompletado = false;
 
     private final float ANCHO_MUNDO = 20f;
     private final float ALTO_MUNDO = 30f;
@@ -74,6 +77,10 @@ public class Nivel4 extends Juego implements InputProcessor {
     @Override
     public void show() {
         super.show();
+
+        tiempoInicioNivel = System.currentTimeMillis() / 1000;  // Iniciar el temporizador
+        tiempoJugadoNivel = 0;
+        nivelCompletado = false;
 
         idioma = Idiomas.getInstance();
         mundo = new World(new Vector2(0, -9.8f), true);
@@ -134,13 +141,16 @@ public class Nivel4 extends Juego implements InputProcessor {
             }
 
             @Override
-            public void endContact(Contact cntct) { }
+            public void endContact(Contact cntct) {
+            }
 
             @Override
-            public void preSolve(Contact cntct, Manifold mnfld) { }
+            public void preSolve(Contact cntct, Manifold mnfld) {
+            }
 
             @Override
-            public void postSolve(Contact cntct, ContactImpulse ci) { }
+            public void postSolve(Contact cntct, ContactImpulse ci) {
+            }
         });
 
         Texture backButtonTexture = new Texture("back_button.png");
@@ -167,6 +177,10 @@ public class Nivel4 extends Juego implements InputProcessor {
 
     @Override
     public void render(float delta) {
+        if (!nivelCompletado) {
+            // Calcular el tiempo jugado en el nivel
+            tiempoJugadoNivel = (System.currentTimeMillis() / 1000) - tiempoInicioNivel;
+        }
         mundo.step(delta, 6, 2);
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -210,10 +224,12 @@ public class Nivel4 extends Juego implements InputProcessor {
     }
 
     @Override
-    public void pause() { }
+    public void pause() {
+    }
 
     @Override
-    public void resume() { }
+    public void resume() {
+    }
 
     @Override
     public void hide() {
@@ -285,6 +301,13 @@ public class Nivel4 extends Juego implements InputProcessor {
     }
 
     private void mostrarDialogoFelicidades() {
+        nivelCompletado = true;
+        PerfilUsuario perfil = loginManager.getPerfilUsuarioActual();
+        if (perfil != null) {
+            perfil.addTiempoJugado(tiempoJugadoNivel);
+            loginManager.actualizarPerfil(perfil);  // Guardar el perfil actualizado
+        }
+
         Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"),
                 new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
@@ -325,28 +348,44 @@ public class Nivel4 extends Juego implements InputProcessor {
     }
 
     @Override
-    public boolean keyDown(int keycode) { return false; }
+    public boolean keyDown(int keycode) {
+        return false;
+    }
 
     @Override
-    public boolean keyUp(int keycode) { return false; }
+    public boolean keyUp(int keycode) {
+        return false;
+    }
 
     @Override
-    public boolean keyTyped(char character) { return false; }
+    public boolean keyTyped(char character) {
+        return false;
+    }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) { return false; }
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
 
     @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) { return false; }
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
 
     @Override
-    public boolean mouseMoved(int screenX, int screenY) { return false; }
+    public boolean mouseMoved(int screenX, int screenY) {
+        return false;
+    }
 
     @Override
-    public boolean scrolled(float amountX, float amountY) { return false; }
+    public boolean scrolled(float amountX, float amountY) {
+        return false;
+    }
 
     @Override
-    public boolean touchCancelled(int screenX, int screenY, int pointer, int button) { return false; }
+    public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
 
     @Override
     public void dispose() {
