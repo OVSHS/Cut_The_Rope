@@ -17,6 +17,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 public class MenuInicio implements Screen {
 
@@ -28,6 +30,7 @@ public class MenuInicio implements Screen {
     private TextButton btnIniciarSesion;
     private TextButton btnCrearJugador;
     private TextButton btnSalir;
+    private Image titleImage;
     
     private Texture[] frames;
     private int currentFrame = 0;
@@ -67,8 +70,9 @@ public class MenuInicio implements Screen {
         table.center();                
         table.defaults().pad(5);       
         stage.addActor(table);
-
-        titleLabel = new Label(idioma.get("menu.inicio"), skin);
+        
+        Texture titleTexture = new Texture(Gdx.files.internal("title_banner.png"));
+        titleImage = new Image(new TextureRegionDrawable(titleTexture));
         btnIniciarSesion = new TextButton(idioma.get("btn.iniciarSesion"), skin);
         btnCrearJugador = new TextButton(idioma.get("btn.crearJugador"), skin);
         btnSalir = new TextButton(idioma.get("btn.salir"), skin);
@@ -76,7 +80,7 @@ public class MenuInicio implements Screen {
         
 
         Table topRow = new Table();
-        topRow.add(titleLabel).padRight(30);   
+        topRow.add(titleImage).padRight(30);   
 
         table.add(topRow).colspan(3).padLeft(40).padBottom(20).row();
 
@@ -114,7 +118,7 @@ public class MenuInicio implements Screen {
     }
 
     private void actualizarTextos() {
-        titleLabel.setText(idioma.get("menu.inicio"));
+        
         btnIniciarSesion.setText(idioma.get("btn.iniciarSesion"));
         btnCrearJugador.setText(idioma.get("btn.crearJugador"));
         btnSalir.setText(idioma.get("btn.salir"));
@@ -163,5 +167,6 @@ public class MenuInicio implements Screen {
             frame.dispose();
         }
         batch.dispose();
+         
     }
 }

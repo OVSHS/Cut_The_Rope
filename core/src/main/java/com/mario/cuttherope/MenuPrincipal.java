@@ -17,6 +17,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class MenuPrincipal implements Screen {
@@ -33,6 +35,8 @@ public class MenuPrincipal implements Screen {
     private TextButton btnPreferenciasJuego;
     private TextButton btnCerrarSesion;
     private TextButton btnRanking;
+    private TextButton btnLogs;
+    private Image titleImage;
 
     private Texture[] frames;
     private int currentFrame = 0;
@@ -69,20 +73,26 @@ public class MenuPrincipal implements Screen {
         table.defaults().pad(5);
         stage.addActor(table);
 
+        Texture titleTexture = new Texture(Gdx.files.internal("title_banner.png"));
+        titleImage = new Image(new TextureRegionDrawable(titleTexture));
+
         titleLabel = new Label(idioma.get("menu.principal"), skin);
         btnJugar = new TextButton(idioma.get("btn.jugar"), skin);
         btnMiPerfil = new TextButton(idioma.get("btn.miPerfil"), skin);
         btnPreferenciasJuego = new TextButton(idioma.get("btn.preferenciasJuego"), skin);
         btnRanking = new TextButton(idioma.get("btn.ranking"), skin);
+        btnLogs = new TextButton(idioma.get("btn.logs"), skin);
         btnCerrarSesion = new TextButton(idioma.get("btn.cerrarSesion"), skin);
 
         Table topRow = new Table();
-        topRow.add(titleLabel).padRight(30);
+        table.add().height(80).colspan(3).row();
+        topRow.add(titleImage).padRight(40);
         table.add(topRow).colspan(3).padBottom(20).row();
         table.add(btnJugar).colspan(3).center().pad(10).row();
         table.add(btnMiPerfil).colspan(3).center().pad(10).row();
         table.add(btnPreferenciasJuego).colspan(3).center().pad(10).row();
         table.add(btnRanking).colspan(3).center().pad(10).row();
+        table.add(btnLogs).colspan(3).center().pad(10).row();
         table.add(btnCerrarSesion).colspan(3).center().pad(10).row();
 
         btnJugar.addListener(new ClickListener() {
@@ -128,6 +138,18 @@ public class MenuPrincipal implements Screen {
                 }
             }
         });
+        
+        btnLogs.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if (loginManager.hayJugadorLogueado()) {
+                    game.setScreen(new PantallaLogs(game, loginManager));
+                } else {
+                    mostrarMensaje(idioma.get("msg.debesIniciarSesionParaVerPerfil"));
+                }
+            }
+        });
+
 
         btnCerrarSesion.addListener(new ClickListener() {
             @Override

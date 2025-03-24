@@ -77,11 +77,10 @@ public class Nivel1 extends Juego implements InputProcessor {
         hudCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         hudCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batchJuego = new SpriteBatch();
-        
+
         tiempoInicioNivel = System.currentTimeMillis() / 1000;
         tiempoJugadoNivel = 0;
         nivelCompletado = false;
-
 
         cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO / 2f, 3f));
         cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 5f));
@@ -116,7 +115,13 @@ public class Nivel1 extends Juego implements InputProcessor {
                                 cuerpoDulce = null;
                             }
                             ropeSimulacion.setDulceComido(true);
-                            mostrarDialogoFelicidades(ropeSimulacion.getEstrellasRecogidas());
+
+                            // Verificar si no se recolectó ninguna estrella
+                            if (ropeSimulacion.getEstrellasRecogidas() == 0) {
+                                mostrarDialogoFallo(); // Mostrar diálogo de fallo
+                            } else {
+                                mostrarDialogoFelicidades(ropeSimulacion.getEstrellasRecogidas()); // Mostrar diálogo de éxito
+                            }
                         });
                     }
                 }
@@ -256,28 +261,31 @@ public class Nivel1 extends Juego implements InputProcessor {
     }
 
     private void mostrarDialogoFelicidades(int estrellasRecolectadas) {
-    nivelCompletado = true;
+        nivelCompletado = true;
 
-    // Guardar el tiempo jugado y sumar las estrellas recolectadas
-    PerfilUsuario perfil = loginManager.getPerfilUsuarioActual();
-    if (perfil != null) {
-        perfil.addTiempoJugado(tiempoJugadoNivel);
-        perfil.addCantEstrellas(estrellasRecolectadas); // Sumar estrellas al total
-        loginManager.actualizarPerfil(perfil); // Guardar el perfil actualizado
+        // Guardar el tiempo jugado y sumar las estrellas recolectadas
+        PerfilUsuario perfil = loginManager.getPerfilUsuarioActual();
+        if (perfil != null) {
+            perfil.addTiempoJugado(tiempoJugadoNivel);
+            perfil.addCantEstrellas(estrellasRecolectadas); // Sumar estrellas al total
+            loginManager.actualizarPerfil(perfil); // Guardar el perfil actualizado
+            loginManager.desbloquearSiguienteNivel();
+            nivelCompletado(numeroNivel, estrellasRecolectadas);
+        }
+
+        // Mostrar diálogo de felicitaciones
+        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"),
+                new Skin(Gdx.files.internal("uiskin.json"))) {
+            @Override
+            protected void result(Object object) {
+                game.setScreen(new MenuNiveles(game, loginManager));
+            }
+        };
+        dialog.text(idioma.get("dialog.felicidadesTexto") + "\nEstrellas recolectadas: " + estrellasRecolectadas);
+        dialog.button(idioma.get("btn.aceptar"), true);
+        dialog.show(stage);
     }
 
-    // Mostrar diálogo de felicitaciones
-    Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"),
-            new Skin(Gdx.files.internal("uiskin.json"))) {
-        @Override
-        protected void result(Object object) {
-            game.setScreen(new MenuNiveles(game, loginManager));
-        }
-    };
-    dialog.text(idioma.get("dialog.felicidadesTexto") + "\nEstrellas recolectadas: " + estrellasRecolectadas);
-    dialog.button(idioma.get("btn.aceptar"), true);
-    dialog.show(stage);
-}
     private void mostrarDialogoFallo() {
         Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"),
                 new Skin(Gdx.files.internal("uiskin.json"))) {
@@ -360,7 +368,7 @@ public class Nivel1 extends Juego implements InputProcessor {
 
     @Override
     public void dispose() {
-        
+
         if (stage != null) {
             stage.dispose();
         }
@@ -381,5 +389,11 @@ public class Nivel1 extends Juego implements InputProcessor {
     @Override
     public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
         return false;
+    }
+
+    public void nivelCompletado(int nivel, int estrellas) {
+        // Registrar la partida en el historial de logs
+        loginManager.registrarPartida(nivel, estrellas);
+
     }
 }

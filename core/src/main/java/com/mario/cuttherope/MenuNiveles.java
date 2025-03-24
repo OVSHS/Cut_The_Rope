@@ -105,7 +105,7 @@ public class MenuNiveles implements Screen {
         // Añadir botones de niveles a la cuadrícula
         for (int i = 1; i <= maxLevels; i++) {
             final int levelNum = i;
-            boolean isUnlocked = levelNum < unlockedLevels;
+            boolean isUnlocked = levelNum <= unlockedLevels;
 
             if (isUnlocked) {
                 // Crear un botón de nivel desbloqueado

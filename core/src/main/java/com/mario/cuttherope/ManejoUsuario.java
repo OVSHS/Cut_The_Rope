@@ -20,10 +20,12 @@ public class ManejoUsuario {
     private PerfilUsuario perfilUsuarioActual;
     private int nivelDesbloqueado = 1;
     private Preferences preferences;
+    private List<LogPartida> logsPartidas;
 
     public ManejoUsuario() {
         preferences = Gdx.app.getPreferences("Cut The Rope");
         cargarProgreso();
+        this.logsPartidas = new ArrayList<>();
     }
 
     public boolean hayJugadorLogueado() {
@@ -47,7 +49,7 @@ public class ManejoUsuario {
         nuevo.setVolumen(1.0f);
         nuevo.setTiempoJugado(0);
         nuevo.setCantEstrellas(0);
-        nuevo.setNivelDesbloqueado(1);
+        nuevo.getNivelDesbloqueado();
         FileHandle file = folder.child("datos.bin");
         return saveUserData(file, nuevo);
     }
@@ -70,12 +72,14 @@ public class ManejoUsuario {
         perfilUsuarioActual = data;
         nivelDesbloqueado = data.getNivelDesbloqueado(); // Cargar el nivel desbloqueado
         return true;
+
     }
 
     public void logout() {
         if (perfilUsuarioActual != null) {
             guardarProgreso(); // Guardar el progreso antes de cerrar sesión
         }
+        PerfilUsuario usuario=new PerfilUsuario();
         perfilUsuarioActual = null; // Cerrar sesión
         nivelDesbloqueado = 1; // Restablecer el nivel desbloqueado
     }
@@ -104,31 +108,52 @@ public class ManejoUsuario {
 
     public void desbloquearSiguienteNivel() {
         nivelDesbloqueado++;
+        if (perfilUsuarioActual != null) {
+            perfilUsuarioActual.setNivelDesbloqueado(nivelDesbloqueado);
+            guardarProgreso();
+        }
     }
 
     public void setNivelDesbloqueado(int nivel) {
-        // Only increase level if the new one is higher
         if (nivel > nivelDesbloqueado) {
             nivelDesbloqueado = nivel;
-            // Save progress to preferences/database
+            if (perfilUsuarioActual != null) {
+                perfilUsuarioActual.setNivelDesbloqueado(nivel);
+            }
             guardarProgreso();
         }
+    }
 
-    }
-    
     public void completarNivel(int nivelActual) {
-    if (nivelActual == nivelDesbloqueado) {
-        desbloquearSiguienteNivel();
+        if (nivelActual == nivelDesbloqueado) {
+            desbloquearSiguienteNivel();
+            if (perfilUsuarioActual != null) {
+                perfilUsuarioActual.setNivelDesbloqueado(nivelDesbloqueado);
+                // Save the profile data too
+                FileHandle folder = Gdx.files.local("usuario/" + perfilUsuarioActual.getApodo());
+                FileHandle file = folder.child("datos.bin");
+                saveUserData(file, perfilUsuarioActual);
+            }
+        }
     }
-}
+
+    public void registrarPartida(int nivel, int estrellas) {
+        String fechaHora = java.time.LocalDateTime.now().toString(); // Fecha y hora actual
+        LogPartida log = new LogPartida(nivel, estrellas, fechaHora);
+        logsPartidas.add(log);
+    }
+
+    public List<LogPartida> getLogsPartidas() {
+        return logsPartidas;
+    }
 
     private void cargarProgreso() {
-    if (preferences.contains("nivelDesbloqueado")) {
-        nivelDesbloqueado = preferences.getInteger("nivelDesbloqueado");
-    } else {
-        nivelDesbloqueado = 1; // Valor por defecto si no hay progreso guardado
+        if (preferences.contains("nivelDesbloqueado")) {
+            nivelDesbloqueado = preferences.getInteger("nivelDesbloqueado");
+        } else {
+            nivelDesbloqueado = 1; // Valor por defecto si no hay progreso guardado
+        }
     }
-}
 
     private void guardarProgreso() {
         // Save to preferences

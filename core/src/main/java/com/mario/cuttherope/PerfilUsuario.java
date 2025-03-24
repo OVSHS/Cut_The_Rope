@@ -25,7 +25,7 @@ public class PerfilUsuario {
     }
 
     public PerfilUsuario(String apodo, String contrasena, String nombreCompleto, String rutaAvatar,
-            long fechaRegistro, long ultimaSesion, float volumen, long tiempoJugado, int cantEstrellas, int nivelDesbloqueado) {
+            long fechaRegistro, long ultimaSesion, float volumen, long tiempoJugado, int cantEstrellas) {
         this.apodo = apodo;
         this.contrasena = contrasena;
         this.nombreCompleto = nombreCompleto;
@@ -35,7 +35,7 @@ public class PerfilUsuario {
         this.volumen = volumen;
         this.tiempoJugado = tiempoJugado;
         this.cantEstrellas= cantEstrellas;
-        this.nivelDesbloqueado= nivelDesbloqueado;
+        this.nivelDesbloqueado= 0;
     }
 
     public String getApodo() {
