@@ -294,19 +294,23 @@ public class Nivel3 extends Juego implements InputProcessor {
     }
 
     private void mostrarDialogoFelicidades(int estrellasRecolectadas) {
+        if (nivelCompletado) {
+            return;
+        }
         nivelCompletado = true;
 
-        // Guardar el tiempo jugado y sumar las estrellas recolectadas
         PerfilUsuario perfil = loginManager.getPerfilUsuarioActual();
         if (perfil != null) {
             perfil.addTiempoJugado(tiempoJugadoNivel);
-            perfil.addCantEstrellas(estrellasRecolectadas); // Sumar estrellas al total
-            loginManager.actualizarPerfil(perfil); // Guardar el perfil actualizado
-            loginManager.desbloquearSiguienteNivel();
+            perfil.addCantEstrellas(estrellasRecolectadas);
+
+            // Solo desbloquear si es el nivel actual (no uno ya superado)
+            loginManager.completarNivel(numeroNivel);
+
+            loginManager.actualizarPerfil(perfil);
             nivelCompletado(numeroNivel, estrellasRecolectadas);
         }
 
-        // Mostrar diálogo de felicitaciones
         Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"),
                 new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override

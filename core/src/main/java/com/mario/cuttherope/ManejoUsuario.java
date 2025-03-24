@@ -79,7 +79,7 @@ public class ManejoUsuario {
         if (perfilUsuarioActual != null) {
             guardarProgreso(); // Guardar el progreso antes de cerrar sesión
         }
-        PerfilUsuario usuario=new PerfilUsuario();
+        PerfilUsuario usuario = new PerfilUsuario();
         perfilUsuarioActual = null; // Cerrar sesión
         nivelDesbloqueado = 1; // Restablecer el nivel desbloqueado
     }
@@ -107,11 +107,22 @@ public class ManejoUsuario {
     }
 
     public void desbloquearSiguienteNivel() {
+    PerfilUsuario perfil = getPerfilUsuarioActual();
+    if (perfil == null) return;
+    
+    // No desbloquear más allá del nivel 5
+    if (nivelDesbloqueado >= 5) {
+        return;
+    }
+    
+    // Solo desbloquear si el siguiente nivel no está ya desbloqueado
+    if (perfil.getNivelDesbloqueado() <= nivelDesbloqueado) {
         nivelDesbloqueado++;
-        if (perfilUsuarioActual != null) {
-            perfilUsuarioActual.setNivelDesbloqueado(nivelDesbloqueado);
-            guardarProgreso();
-        }
+        perfil.setNivelDesbloqueado(nivelDesbloqueado);
+        guardarProgreso();
+        actualizarPerfil(perfil);
+    }
+
     }
 
     public void setNivelDesbloqueado(int nivel) {
@@ -125,21 +136,15 @@ public class ManejoUsuario {
     }
 
     public void completarNivel(int nivelActual) {
+        // Solo desbloquear si el nivel completado es el último desbloqueado
         if (nivelActual == nivelDesbloqueado) {
             desbloquearSiguienteNivel();
-            if (perfilUsuarioActual != null) {
-                perfilUsuarioActual.setNivelDesbloqueado(nivelDesbloqueado);
-                // Save the profile data too
-                FileHandle folder = Gdx.files.local("usuario/" + perfilUsuarioActual.getApodo());
-                FileHandle file = folder.child("datos.bin");
-                saveUserData(file, perfilUsuarioActual);
-            }
         }
     }
 
     public void registrarPartida(int nivel, int estrellas) {
-        String fechaHora = java.time.LocalDateTime.now().toString(); // Fecha y hora actual
-        LogPartida log = new LogPartida(nivel, estrellas, fechaHora);
+        String fecha = java.time.LocalDate.now().toString(); // Only date (YYYY-MM-DD)
+        LogPartida log = new LogPartida(nivel, estrellas, fecha);
         logsPartidas.add(log);
     }
 
