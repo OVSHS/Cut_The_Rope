@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mario.cuttherope;
 
 import com.badlogic.gdx.Gdx;
@@ -41,108 +37,102 @@ import java.util.ArrayList;
  *
  * @author Maria Gabriela
  */
-public class Nivel5 implements Screen, InputProcessor {
+public class Nivel5 extends Juego implements InputProcessor {
 
     private Stage stage;
     private ManejoUsuario loginManager;
     private MainGame game;
     private int numeroNivel;
     private boolean juegoTerminado = false;
-
     private World mundo;
     private OrthographicCamera camara;
+    private OrthographicCamera hudCamera;
     private SpriteBatch batchJuego;
     private Body cuerpoOmNom;
     private Body cuerpoDulce;
-    private ArrayList<AreaAnclaje> listaAreasAnclaje = new ArrayList<>();
-    private ArrayList<Cuerda> listaCuerdas = new ArrayList<>();
-    private ArrayList<AreaAnclaje> pendingRopeCreations = new ArrayList<>();
-    private OrthographicCamera hudCamera;
     private ShapeRenderer shapeRenderer;
+    private ArrayList<Cuerda> listaCuerdas = new ArrayList<>();
     private ArrayList<StarObject> listaEstrellas = new ArrayList<>();
+    private ArrayList<Body> listaSpikes = new ArrayList<>(); // Lista para almacenar los cuerpos de los spikes
     private RopeSimulacion ropeSimulacion;
+    private Idiomas idioma;
+    private Box2DDebugRenderer debugRenderer;
+    private long tiempoInicioNivel;
+    private long tiempoJugadoNivel;
+    private boolean nivelCompletado = false;
 
     private final float ANCHO_MUNDO = 20f;
     private final float ALTO_MUNDO = 30f;
-     private Idiomas idioma;
 
-    private Box2DDebugRenderer debugRenderer;
-
-    public Nivel5(MainGame game, ManejoUsuario loginManager, int nivel) {
-        this.game = game;
+    public Nivel5(MainGame mainGame, ManejoUsuario loginManager, int nivel) {
+        super(mainGame, loginManager);
+        this.game = mainGame;
         this.loginManager = loginManager;
         this.numeroNivel = nivel;
     }
 
-    private class AreaAnclaje {
-
-        Body areaSensor;
-        Body anclaje;
-        float radio;
-        boolean creadaCuerda;
-
-        public AreaAnclaje(Body areaSensor, Body anclaje, float radio) {
-            this.areaSensor = areaSensor;
-            this.anclaje = anclaje;
-            this.radio = radio;
-            this.creadaCuerda = false;
-        }
-    }
-
     @Override
     public void show() {
+        super.show();
+
+        tiempoInicioNivel = System.currentTimeMillis() / 1000;
+        tiempoJugadoNivel = 0;
+        nivelCompletado = false;
+
         idioma = Idiomas.getInstance();
         mundo = new World(new Vector2(0, -9.8f), true);
-        debugRenderer = new Box2DDebugRenderer();
-
-        shapeRenderer = new ShapeRenderer();
         stage = new Stage(new ScreenViewport());
         camara = new OrthographicCamera(ANCHO_MUNDO, ALTO_MUNDO);
         camara.position.set(ANCHO_MUNDO / 2f, ALTO_MUNDO / 2f, 0);
         camara.update();
-        hudCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        hudCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
         batchJuego = new SpriteBatch();
+        debugRenderer = new Box2DDebugRenderer();
+        shapeRenderer = new ShapeRenderer();
 
-        // Crear Om Nom en la esquina inferior derecha
-        cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO - 4f, 3f));
+        // Creación de cuerpos
+        cuerpoOmNom = crearCuerpoOmNom(new Vector2(ANCHO_MUNDO / 2f, 4f)); // Om Nom en la parte inferior
+        cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 10f)); // Caramelo en la parte superior
 
-        // Crear el dulce en la parte superior central
-        cuerpoDulce = crearCuerpoDulce(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO * 0.75f));
+        // Crear anclajes y cuerdas en forma de estrella alrededor del caramelo (como en la imagen)
+        // Se crean 3 anclajes formando un triángulo alrededor del caramelo
+        Body anclajeIzquierda = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f - 3f, ALTO_MUNDO - 10f));
+        Body anclajeDerecha = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f + 3f, ALTO_MUNDO - 10f));
+        Body anclajeSuperior = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO - 7f));
 
-        // Crear un anclaje en la parte superior
-        Body anclajeArriba = crearAnclaje(new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO * 0.85f));
+        Cuerda cuerdaIzquierda = new Cuerda(anclajeIzquierda, cuerpoDulce, mundo);
+        Cuerda cuerdaDerecha = new Cuerda(anclajeDerecha, cuerpoDulce, mundo);
+        Cuerda cuerdaSuperior = new Cuerda(anclajeSuperior, cuerpoDulce, mundo);
 
-        // Crear la cuerda inicial que une el anclaje superior al dulce
-        Cuerda cuerdaSuperior = new Cuerda(anclajeArriba, cuerpoDulce, mundo);
-        cuerdaSuperior.setLongitud(2f);
+        cuerdaIzquierda.setLongitud(3f);
+        cuerdaDerecha.setLongitud(3f);
+        cuerdaSuperior.setLongitud(3f);
+
+        listaCuerdas.add(cuerdaIzquierda);
+        listaCuerdas.add(cuerdaDerecha);
         listaCuerdas.add(cuerdaSuperior);
 
-        // Crear las áreas de anclaje (3 círculos en diagonal)
-        float radioArea = 2f;
+        // Crear estrellas (posicionadas como en la imagen)
+        listaEstrellas.add(crearEstrella(new Vector2(5f, 15f))); // Estrella izquierda
+        listaEstrellas.add(crearEstrella(new Vector2(ANCHO_MUNDO / 2f, 13f))); // Estrella centro
+        listaEstrellas.add(crearEstrella(new Vector2(15f, 15f))); // Estrella derecha
 
-        // Posiciones para los círculos de anclaje en diagonal
-        Vector2 posArea1 = new Vector2(ANCHO_MUNDO / 2f, ALTO_MUNDO / 2f);
-        Vector2 posArea2 = new Vector2(ANCHO_MUNDO / 2f + 3f, ALTO_MUNDO / 2f - 3f);
-        Vector2 posArea3 = new Vector2(ANCHO_MUNDO / 2f + 6f, ALTO_MUNDO / 2f - 6f);
+        // Crear spikes (como se ve en la imagen)
+        // Primera fila de spikes
+        for (int i = 0; i < 5; i++) {
+            Body spike = crearSpike(new Vector2(6f + i * 1.5f, 12f));
+            listaSpikes.add(spike);
+        }
+        
+        // Segunda fila de spikes
+        for (int i = 0; i < 5; i++) {
+            Body spike = crearSpike(new Vector2(6f + i * 1.5f, 8f));
+            listaSpikes.add(spike);
+        }
 
-        // Crear las áreas de anclaje con sus respectivos anclajes
-        AreaAnclaje area1 = crearAreaAnclaje(posArea1, radioArea);
-        AreaAnclaje area2 = crearAreaAnclaje(posArea2, radioArea);
-        AreaAnclaje area3 = crearAreaAnclaje(posArea3, radioArea);
-
-        listaAreasAnclaje.add(area1);
-        listaAreasAnclaje.add(area2);
-        listaAreasAnclaje.add(area3);
-
-        // Crear las estrellas (3 estrellas cerca de las áreas de anclaje)
-        listaEstrellas.add(crearEstrella(new Vector2(posArea1.x - 2f, posArea1.y)));
-        listaEstrellas.add(crearEstrella(new Vector2(posArea2.x, posArea2.y - 1f)));
-        listaEstrellas.add(crearEstrella(new Vector2(posArea3.x, posArea3.y - 1f)));
-
+        // Inicializar la simulación de cuerdas
         ropeSimulacion = new RopeSimulacion(game, loginManager, numeroNivel, mundo);
         ropeSimulacion.inicializarElementos(cuerpoOmNom, cuerpoDulce, listaEstrellas, listaCuerdas, mundo);
+        ropeSimulacion.setSpikes(listaSpikes); // Pasamos la lista de spikes a la simulación
 
         juegoTerminado = false;
         mundo.setContactListener(new ContactListener() {
@@ -150,22 +140,12 @@ public class Nivel5 implements Screen, InputProcessor {
             public void beginContact(Contact contact) {
                 Body bodyA = contact.getFixtureA().getBody();
                 Body bodyB = contact.getFixtureB().getBody();
-
-                // Log debug info
-                if (bodyA != null && bodyB != null) {
-                    Object dataA = bodyA.getUserData();
-                    Object dataB = bodyB.getUserData();
-                    Gdx.app.log("Contact", "Contacto entre: "
-                            + (dataA != null ? dataA.toString() : "null") + " y "
-                            + (dataB != null ? dataB.toString() : "null"));
-                }
-
-                // Check collision between candy and Om Nom
+                
+                // Detectar colisión entre el dulce y Om Nom
                 if ((bodyA.getUserData() != null && bodyA.getUserData().equals("dulce")
                         && bodyB.getUserData() != null && bodyB.getUserData().equals("omnom"))
                         || (bodyB.getUserData() != null && bodyB.getUserData().equals("dulce")
                         && bodyA.getUserData() != null && bodyA.getUserData().equals("omnom"))) {
-
                     if (!juegoTerminado) {
                         juegoTerminado = true;
                         Gdx.app.postRunnable(() -> {
@@ -178,56 +158,47 @@ public class Nivel5 implements Screen, InputProcessor {
                         });
                     }
                 }
-
-                Body dulceBody = null;
-                Body areaBody = null;
-
-                if (bodyA.getUserData() != null && bodyA.getUserData().equals("dulce")) {
-                    dulceBody = bodyA;
-                    if (bodyB.getUserData() != null && bodyB.getUserData().equals("areaAnclaje")) {
-                        areaBody = bodyB;
-                    }
-                } else if (bodyB.getUserData() != null && bodyB.getUserData().equals("dulce")) {
-                    dulceBody = bodyB;
-                    if (bodyA.getUserData() != null && bodyA.getUserData().equals("areaAnclaje")) {
-                        areaBody = bodyA;
-                    }
-                }
-
-                if (dulceBody != null && areaBody != null) {
-
-                    // Find the corresponding anchor area
-                    for (AreaAnclaje area : listaAreasAnclaje) {
-                        if (area.areaSensor == areaBody && !area.creadaCuerda) {
-                            // Instead of creating the rope here, add the area to pending list
-                            pendingRopeCreations.add(area);
-                            break;
-                        }
+                
+                // Detectar colisión entre el dulce y los spikes
+                if ((bodyA.getUserData() != null && bodyA.getUserData().equals("dulce")
+                        && bodyB.getUserData() != null && bodyB.getUserData().equals("spike"))
+                        || (bodyB.getUserData() != null && bodyB.getUserData().equals("dulce")
+                        && bodyA.getUserData() != null && bodyA.getUserData().equals("spike"))) {
+                    if (!juegoTerminado) {
+                        juegoTerminado = true;
+                        Gdx.app.postRunnable(() -> {
+                            if (cuerpoDulce != null) {
+                                mundo.destroyBody(cuerpoDulce);
+                                cuerpoDulce = null;
+                            }
+                            mostrarDialogoFallo();
+                        });
                     }
                 }
             }
 
             @Override
-            public void endContact(Contact contact) {
+            public void endContact(Contact cntct) {
             }
 
             @Override
-            public void preSolve(Contact contact, Manifold oldManifold) {
+            public void preSolve(Contact cntct, Manifold mnfld) {
             }
 
             @Override
-            public void postSolve(Contact contact, ContactImpulse impulse) {
+            public void postSolve(Contact cntct, ContactImpulse ci) {
             }
         });
-        
-         Texture backButtonTexture = new Texture("back_button.png");
+
+        // Botón para volver al mapa
+        Texture backButtonTexture = new Texture("back_button.png");
         TextureRegionDrawable drawable = new TextureRegionDrawable(new TextureRegion(backButtonTexture));
         TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
         textButtonStyle.up = drawable;
         textButtonStyle.down = drawable;
         textButtonStyle.font = new BitmapFont();
 
-       TextButton botonMapa = new TextButton(idioma.get("btn.mapa"), textButtonStyle);
+        TextButton botonMapa = new TextButton(idioma.get("btn.mapa"), textButtonStyle);
         botonMapa.setSize(100, 50);
         botonMapa.setPosition(10, 10);
         botonMapa.addListener(new ClickListener() {
@@ -237,69 +208,54 @@ public class Nivel5 implements Screen, InputProcessor {
             }
         });
         stage.addActor(botonMapa);
+
+        // Configurar el procesador de entrada
         InputMultiplexer multiplexer = new InputMultiplexer(stage, this);
         Gdx.input.setInputProcessor(multiplexer);
     }
 
     @Override
     public void render(float delta) {
-        for (AreaAnclaje area : pendingRopeCreations) {
-            if (!area.creadaCuerda) {
-                Cuerda nuevaCuerda = new Cuerda(area.anclaje, cuerpoDulce, mundo);
-                nuevaCuerda.setLongitud(3f);
-                // Apply an initial small impulse to help settle the physics
-                if (cuerpoDulce != null) {
-                    cuerpoDulce.applyLinearImpulse(new Vector2(0, -0.1f),
-                            cuerpoDulce.getWorldCenter(), true);
-                }
-                listaCuerdas.add(nuevaCuerda);
-                area.creadaCuerda = true;
-            }
+        if (!nivelCompletado) {
+            tiempoJugadoNivel = (System.currentTimeMillis() / 1000) - tiempoInicioNivel;
         }
-        pendingRopeCreations.clear();
-
+        
+        // Actualizar la física
         mundo.step(delta, 6, 2);
-
-        Gdx.gl.glClearColor(0.76f, 0.67f, 0.5f, 1);
+        
+        // Limpiar la pantalla
+        Gdx.gl.glClearColor(0.95f, 0.9f, 0.8f, 1); // Color de fondo beige claro como en la imagen
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        // Dibujar debug de física si es necesario
+        debugRenderer.setDrawBodies(false);
         debugRenderer.render(mundo, camara.combined);
+        debugRenderer.setDrawBodies(true);
 
-        shapeRenderer.setProjectionMatrix(camara.combined);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(0.5f, 0.3f, 0.1f, 1);
-
-        for (AreaAnclaje area : listaAreasAnclaje) {
-            Vector2 pos = area.areaSensor.getPosition();
-            float radio = area.radio;
-
-            int segmentos = 20;
-            float anguloIncremento = 360f / segmentos;
-
-            for (int i = 0; i < segmentos; i++) {
-                float angulo1 = (float) Math.toRadians(i * anguloIncremento);
-                float angulo2 = (float) Math.toRadians((i + 0.5f) * anguloIncremento);
-
-                float x1 = pos.x + radio * (float) Math.cos(angulo1);
-                float y1 = pos.y + radio * (float) Math.sin(angulo1);
-                float x2 = pos.x + radio * (float) Math.cos(angulo2);
-                float y2 = pos.y + radio * (float) Math.sin(angulo2);
-
-                shapeRenderer.line(x1, y1, x2, y2);
-            }
-        }
-        shapeRenderer.end();
-
+        // Actualizar y dibujar la stage (UI)
         stage.act(delta);
         stage.draw();
 
+        // Actualizar la simulación de la cuerda
         ropeSimulacion.actualizar(delta);
 
+        // Dibujar los elementos del juego
         batchJuego.setProjectionMatrix(camara.combined);
         batchJuego.begin();
+        // Dibujar elementos del juego
         ropeSimulacion.render(batchJuego);
+        
+        // Dibujar spikes aquí si no están en la simulación
+        // renderSpikes(batchJuego);
+        
         batchJuego.end();
-
+        
+        // Dibujar las formas para los spikes utilizando ShapeRenderer
+        shapeRenderer.setProjectionMatrix(camara.combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        renderizarSpikes(shapeRenderer);
+        shapeRenderer.end();
+        
         try {
             if (hudCamera == null) {
                 hudCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -314,9 +270,27 @@ public class Nivel5 implements Screen, InputProcessor {
             Gdx.app.error("error", "Error al renderizar HUD", e);
         }
 
+        // Verificar si el dulce cayó fuera de la pantalla
         if (!juegoTerminado && cuerpoDulce != null && cuerpoDulce.getPosition().y < -5) {
             juegoTerminado = true;
             mostrarDialogoFallo();
+        }
+    }
+    
+    private void renderizarSpikes(ShapeRenderer shapeRenderer) {
+        // Dibujar los spikes como triángulos
+        shapeRenderer.setColor(0.7f, 0.7f, 0.7f, 1f); // Color gris para los spikes
+        
+        for (Body spikeBody : listaSpikes) {
+            Vector2 pos = spikeBody.getPosition();
+            float size = 0.5f; // Tamaño de base del spike
+            
+            // Dibujar el triángulo del spike
+            shapeRenderer.triangle(
+                pos.x - size, pos.y - size/2, // Punto inferior izquierdo
+                pos.x + size, pos.y - size/2, // Punto inferior derecho
+                pos.x, pos.y + size        // Punto superior
+            );
         }
     }
 
@@ -327,56 +301,28 @@ public class Nivel5 implements Screen, InputProcessor {
 
     @Override
     public void pause() {
-
     }
 
     @Override
     public void resume() {
-
     }
 
     @Override
     public void hide() {
-
+        dispose();
     }
 
-    private AreaAnclaje crearAreaAnclaje(Vector2 pos, float radio) {
-        Body anclaje = crearAnclaje(pos);
-
-        BodyDef areaDef = new BodyDef();
-        areaDef.type = BodyDef.BodyType.StaticBody;
-        areaDef.position.set(pos);
-        Body areaBody = mundo.createBody(areaDef);
-
-        CircleShape areaShape = new CircleShape();
-        areaShape.setRadius(radio);
-
-        FixtureDef areaFixture = new FixtureDef();
-        areaFixture.shape = areaShape;
-        areaFixture.isSensor = true;
-
-        areaBody.createFixture(areaFixture);
-        areaBody.setUserData("areaAnclaje");
-
-        areaShape.dispose();
-
-        return new AreaAnclaje(areaBody, anclaje, radio);
+    @Override
+    public void dispose() {
+        shapeRenderer.dispose();
+        stage.dispose();
+        ropeSimulacion.dispose();
+        mundo.dispose();
+        batchJuego.dispose();
+        debugRenderer.dispose();
     }
 
-    private Body crearAnclaje(Vector2 pos) {
-        BodyDef bd = new BodyDef();
-        bd.type = BodyDef.BodyType.StaticBody;
-        bd.position.set(pos);
-        Body body = mundo.createBody(bd);
-        CircleShape shape = new CircleShape();
-        shape.setRadius(0.1f);
-        FixtureDef fd = new FixtureDef();
-        fd.shape = shape;
-        fd.isSensor = true;
-        body.createFixture(fd);
-        shape.dispose();
-        return body;
-    }
+    // Métodos de creación de objetos
 
     private Body crearCuerpoOmNom(Vector2 pos) {
         Pieza p = new Pieza(1f, BodyDef.BodyType.StaticBody);
@@ -398,11 +344,11 @@ public class Nivel5 implements Screen, InputProcessor {
         BodyDef bd = new BodyDef();
         bd.type = BodyDef.BodyType.DynamicBody;
         bd.position.set(pos);
-        bd.linearDamping = 0.1f;
+        bd.linearDamping = 0.5f;
         Body body = mundo.createBody(bd);
         FixtureDef fd = new FixtureDef();
         fd.shape = p.forma;
-        fd.density = 1f;
+        fd.density = 2f;
         fd.friction = 0.2f;
         fd.restitution = 0.1f;
         fd.filter.groupIndex = -1;
@@ -412,24 +358,47 @@ public class Nivel5 implements Screen, InputProcessor {
         return body;
     }
 
-    private Body crearObstaculo(Vector2 pos, float radio) {
+    private Body crearAnclaje(Vector2 pos) {
         BodyDef bd = new BodyDef();
         bd.type = BodyDef.BodyType.StaticBody;
         bd.position.set(pos);
         Body body = mundo.createBody(bd);
-
         CircleShape shape = new CircleShape();
-        shape.setRadius(radio);
-
+        shape.setRadius(0.2f);
         FixtureDef fd = new FixtureDef();
         fd.shape = shape;
-        fd.friction = 0.3f;
-        fd.restitution = 0.1f;
-
+        fd.isSensor = true;
         body.createFixture(fd);
-        body.setUserData("obstaculo");
-
         shape.dispose();
+        body.setUserData("anclaje");
+        return body;
+    }
+
+    private Body crearSpike(Vector2 pos) {
+        // Crear un cuerpo de spike triangular
+        BodyDef bd = new BodyDef();
+        bd.type = BodyDef.BodyType.StaticBody;
+        bd.position.set(pos);
+        Body body = mundo.createBody(bd);
+        
+        // Definir la forma triangular del spike
+        com.badlogic.gdx.physics.box2d.PolygonShape shape = new com.badlogic.gdx.physics.box2d.PolygonShape();
+        Vector2[] vertices = new Vector2[3];
+        float size = 0.5f; // Tamaño de base del spike
+        
+        vertices[0] = new Vector2(-size, -size/2);  // Inferior izquierda
+        vertices[1] = new Vector2(size, -size/2);   // Inferior derecha
+        vertices[2] = new Vector2(0, size);         // Superior centro
+        
+        shape.set(vertices);
+        
+        FixtureDef fd = new FixtureDef();
+        fd.shape = shape;
+        fd.isSensor = true; // Lo hacemos sensor para detectar la colisión pero sin afectar físicamente
+        body.createFixture(fd);
+        body.setUserData("spike");
+        shape.dispose();
+        
         return body;
     }
 
@@ -448,8 +417,20 @@ public class Nivel5 implements Screen, InputProcessor {
         return new StarObject(p, body);
     }
 
-     private void mostrarDialogoFelicidades() {
-        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
+    // Métodos para mostrar diálogos
+
+    private void mostrarDialogoFelicidades() {
+        nivelCompletado = true;
+
+        // Actualizar el perfil del usuario con el tiempo jugado
+        PerfilUsuario perfil = loginManager.getPerfilUsuarioActual();
+        if (perfil != null) {
+            perfil.addTiempoJugado(tiempoJugadoNivel);
+            loginManager.actualizarPerfil(perfil);
+        }
+
+        Dialog dialog = new Dialog(idioma.get("dialog.felicidadesTitulo"),
+                new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 game.setScreen(new MenuPrincipal(game, loginManager));
@@ -461,8 +442,8 @@ public class Nivel5 implements Screen, InputProcessor {
     }
 
     private void mostrarDialogoFallo() {
-
-        Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"), new Skin(Gdx.files.internal("uiskin.json"))) {
+        Dialog dialog = new Dialog(idioma.get("dialog.nivelTerminadoTitulo"),
+                new Skin(Gdx.files.internal("uiskin.json"))) {
             @Override
             protected void result(Object object) {
                 boolean volverAlMenu = (boolean) object;
@@ -479,62 +460,55 @@ public class Nivel5 implements Screen, InputProcessor {
         dialog.show(stage);
     }
 
-    @Override
-    public void dispose() {
-        shapeRenderer.dispose();
-        stage.dispose();
-        ropeSimulacion.dispose();
-        mundo.dispose();
-        batchJuego.dispose();
-        debugRenderer.dispose();
-    }
+    // Métodos del InputProcessor para manejar eventos de entrada
 
     @Override
-    public boolean keyDown(int i) {
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         return false;
     }
 
     @Override
-    public boolean keyUp(int i) {
-        return false;
-    }
-
-    @Override
-    public boolean keyTyped(char c) {
-        return false;
-    }
-
-    @Override
-    public boolean touchDown(int i, int i1, int i2, int i3) {
-        return false;
-    }
-
-    @Override
-    public boolean touchUp(int i, int i1, int i2, int i3) {
-        return false;
-    }
-
-    @Override
-    public boolean touchCancelled(int i, int i1, int i2, int i3) {
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         return false;
     }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
+        // Convertir coordenadas de pantalla a coordenadas de mundo
         Vector3 tmp = new Vector3(screenX, screenY, 0);
         camara.unproject(tmp);
+        // Intentar cortar la cuerda donde el usuario arrastró el dedo
         ropeSimulacion.intentarCortarCuerda(new Vector2(tmp.x, tmp.y));
         return true;
     }
 
     @Override
-    public boolean mouseMoved(int i, int i1) {
+    public boolean keyDown(int keycode) {
         return false;
     }
 
     @Override
-    public boolean scrolled(float f, float f1) {
+    public boolean keyUp(int keycode) {
         return false;
     }
 
+    @Override
+    public boolean keyTyped(char character) {
+        return false;
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        return false;
+    }
+
+    @Override
+    public boolean scrolled(float amountX, float amountY) {
+        return false;
+    }
+
+    @Override
+    public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
 }

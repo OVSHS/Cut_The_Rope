@@ -51,6 +51,7 @@ public class RopeSimulacion {
     private Texture texturaEstrellaFull;
     private int estrellasRecogidas = 0;
     private int totalStars = 0;
+    private ArrayList<Body> spikes;
 
     public RopeSimulacion(MainGame game, ManejoUsuario loginManager, int nivel, World mundo) {
         this.game = game;
@@ -90,6 +91,10 @@ public class RopeSimulacion {
 
     public void actualizarCuerdas(List<Cuerda> cuerdas) {
         this.listaCuerdas = cuerdas;
+    }
+
+    public void setSpikes(ArrayList<Body> spikes) {
+        this.spikes = spikes;
     }
 
     public void actualizar(final float delta) {

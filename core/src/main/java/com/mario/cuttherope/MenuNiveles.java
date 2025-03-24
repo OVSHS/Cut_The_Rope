@@ -220,7 +220,7 @@ public class MenuNiveles implements Screen {
         // Launch the appropriate level based on the level number
         switch (levelNum) {
             case 1:
-                game.setScreen(new Nivel2(game, loginManager, 1));
+                game.setScreen(new Nivel5(game, loginManager, 1));
                 break;
             case 2:
                 game.setScreen(new Nivel2(game, loginManager, 2));
